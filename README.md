@@ -3,7 +3,7 @@
 
 [![Build status](https://travis-ci.org/polterguy/magic.lambda.caching.svg?master)](https://travis-ci.org/polterguy/magic.lambda.caching)
 
-Cache slots for Magic, more specifically the following slots.
+Cache helper slots for Magic, more specifically the following slots.
 
 * __[cache.set]__ - Adds the specified item to the cache.
 * __[cache.get]__ - Returns a previously cached item, if existing.
@@ -22,7 +22,8 @@ Invoke this slot to save an item to the cache. The slot takes 3 properties, whic
 Absolute expiration implies that the item will be kept in the cache, for x number of seconds, before
 evicted from the cache. Sliding expiration implies that if the cached item is accessed more frequently
 than the sliding expiration interval, the item will never expire, until it's no longer accessed for
-its **[expiration]** number of seconds. To remove a cached item, invoke this slot with a null **[value]**.
+its **[expiration]** number of seconds. To remove a cached item, invoke this slot with a null **[value]**,
+or no **[value]** node at all.
 
 Below is an example of a piece of Hyperlambda that simply saves the value of _"Howdy world"_ to your
 cache, using _"cache-item-key"_ as the key for the cache item. Notice, this example uses sliding expiration,
@@ -34,6 +35,12 @@ cache.set:cache-item-key
    expiration:5
    expiration-type:sliding
    value:Howdy world
+```
+
+To remove the above item, you can use the following Hyperlambda.
+
+```
+cache.set:cache-item-key
 ```
 
 ## [cache.get]
@@ -50,7 +57,7 @@ cache.get:cache-item-key
 This slot checks your cache to look for an item matching your specified key, and if not found, it will
 invoke its **[.lambda]** argument, and save its returned value to the cache with the specified key,
 before returning the value to caller. This is a particularly useful slot, since it will synchronise
-access to the cache key, preventing more than one lambda object to being invoked simultaneously,
+access to the cache key, preventing more than one lambda object from being invoked simultaneously,
 given the same key.
 
 ```
@@ -60,6 +67,9 @@ cache.try-get:cache-key
    .lambda
       return:Howdy world
 ```
+
+This slot contains an async overload, called **[wait.cache.try-get]**, allowing you to use async
+slots in your **[.lambda]** argument.
 
 ## License
 

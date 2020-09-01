@@ -17,7 +17,6 @@ namespace magic.lambda.caching
     /// [cache.set] slot saving its first child node's value to the memory cache.
     /// </summary>
     [Slot(Name = "cache.set")]
-    [Slot(Name = "wait.cache.set")]
     public class CacheSet : ISlot
     {
         readonly IMemoryCache _cache;
