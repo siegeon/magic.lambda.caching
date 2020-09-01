@@ -99,13 +99,9 @@ namespace magic.lambda.caching
                 "sliding";
 
             if (expirationType == "sliding")
-            {
                 entry.SlidingExpiration = new TimeSpan(0, 0, expiration);
-            }
             else if (expirationType == "absolute")
-            {
                 entry.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(expiration);
-            }
             else
                 throw new ArgumentException($"'{expirationType}' is not a known type of expiration");
         }
