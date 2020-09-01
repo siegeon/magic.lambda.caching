@@ -40,11 +40,18 @@ namespace magic.lambda.caching
         {
             if (input.Children.Count() != 1)
                 throw new ApplicationException("[cache.try-get] must have exactly one child node");
+            if (input.Children.First().Name != ".lambda")
+                throw new ApplicationException("[cache.try-get] child node must be named [.lambda]");
+
             var key = input.GetEx<string>();
             input.Value = _cache.GetOrCreate(key, (entry) =>
             {
-                signaler.Signal("eval", input);
-                return input.Children.FirstOrDefault()?.Value;
+                var result = new Node();
+                signaler.Scope("slots.result", result, () =>
+                {
+                    signaler.Signal("eval", input.Children.First().Clone());
+                });
+                return result.Value;
             });
         }
 
