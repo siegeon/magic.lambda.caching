@@ -5,7 +5,7 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using magic.node;
 using magic.node.extensions;
@@ -18,17 +18,19 @@ namespace magic.lambda.caching
     /// </summary>
     [Slot(Name = "cache.set")]
     [Slot(Name = "wait.cache.set")]
-    public class CacheSet : ISlotAsync, ISlot
+    public class CacheSet : ISlot
     {
         readonly IMemoryCache _cache;
+        readonly IConfiguration _configuration;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheSet(IMemoryCache cache)
+        public CacheSet(IMemoryCache cache, IConfiguration configuration)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -38,33 +40,21 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            if (input.Children.Count() > 1)
-                throw new ApplicationException("[cache.set] can have maximum one child node");
-            signaler.Signal("eval", input);
             var key = input.GetEx<string>();
-            var val = input.Children.FirstOrDefault()?.Value;
+            var val = input.Children.FirstOrDefault(x => x.Name == "value")?.Value;
+            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ?? 
+                long.Parse(_configuration["magic:caching:expiration"]);
             if (val == null)
+            {
                 _cache.Remove(key);
+            }
             else
-                _cache.Set(key, val);
-        }
-
-        /// <summary>
-        /// Slot implementation.
-        /// </summary>
-        /// <param name="signaler">Signaler that raised the signal.</param>
-        /// <param name="input">Arguments to slot.</param>
-        public async Task SignalAsync(ISignaler signaler, Node input)
-        {
-            if (input.Children.Count() > 1)
-                throw new ApplicationException("[cache.set] can have maximum one child node");
-            await signaler.SignalAsync("wait.eval", input);
-            var key = input.GetEx<string>();
-            var val = input.Children.FirstOrDefault()?.Value;
-            if (val == null)
-                _cache.Remove(key);
-            else
-                _cache.Set(key, val);
+            {
+                _cache.Set(key, val, new MemoryCacheEntryOptions
+                {
+                    
+                });
+            }
         }
     }
 }
