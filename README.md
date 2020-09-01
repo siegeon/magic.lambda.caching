@@ -71,6 +71,20 @@ cache.try-get:cache-key
 This slot contains an async overload, called **[wait.cache.try-get]**, allowing you to use async
 slots in your **[.lambda]** argument.
 
+## Configuration settings
+
+You can provide default settings for both **[expiration]** and **[expiration-type]** in
+your _"appsettings.json"_ file, allowing you to provide default values, used if no explicit arguments
+are supplied as you invoke **[cache.set]** and **[cache.try-get]**. This can be done as follows.
+
+```json
+  "magic": {
+    "caching": {
+      "expiration": 5,
+      "expiration-type": "sliding"
+    }, /* ... rest of your appsettings.json file goes here ... */
+```
+
 ## License
 
 Although most of Magic's source code is Open Source, you will need a license key to use it.
