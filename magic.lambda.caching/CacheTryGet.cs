@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using magic.node;
 using magic.node.extensions;
@@ -21,14 +22,16 @@ namespace magic.lambda.caching
     public class CacheTryGet : ISlotAsync, ISlot
     {
         readonly IMemoryCache _cache;
+        readonly IConfiguration _configuration;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheTryGet(IMemoryCache cache)
+        public CacheTryGet(IMemoryCache cache, IConfiguration configuration)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -43,10 +46,29 @@ namespace magic.lambda.caching
 
             var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda")?.Clone();
             if (lambda == null)
-                throw new ArgumentNullException("[cache.try-get] must have a [.lambda] argument");
+                throw new ArgumentNullException("[cache.try-get] must have a [.lambda]");
 
             input.Value = _cache.GetOrCreate(key, entry =>
             {
+                // Caller tries to actually save an object to cache.
+                var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<int>() ?? 
+                    int.Parse(_configuration["magic:caching:expiration"] ?? "5");
+
+                var expirationType = input.Children.FirstOrDefault(x => x.Name == "expiration-type")?.GetEx<string>() ?? 
+                    _configuration["magic:caching:expiration-type"] ??
+                    "sliding";
+
+                if (expirationType == "sliding")
+                {
+                    entry.SlidingExpiration = new TimeSpan(0, 0, expiration);
+                }
+                else if (expirationType == "absolute")
+                {
+                    entry.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(expiration);
+                }
+                else
+                    throw new ArgumentException($"'{expirationType}' is not a known type of expiration");
+
                 var result = new Node();
                 signaler.Scope("slots.result", result, () =>
                 {
@@ -68,10 +90,29 @@ namespace magic.lambda.caching
 
             var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda")?.Clone();
             if (lambda == null)
-                throw new ArgumentNullException("[cache.try-get] must have a [.lambda] argument");
+                throw new ArgumentNullException("[cache.try-get] must have a [.lambda]");
 
             input.Value = await _cache.GetOrCreate(key, async entry =>
             {
+                // Caller tries to actually save an object to cache.
+                var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<int>() ?? 
+                    int.Parse(_configuration["magic:caching:expiration"] ?? "5");
+
+                var expirationType = input.Children.FirstOrDefault(x => x.Name == "expiration-type")?.GetEx<string>() ?? 
+                    _configuration["magic:caching:expiration-type"] ??
+                    "sliding";
+
+                if (expirationType == "sliding")
+                {
+                    entry.SlidingExpiration = new TimeSpan(0, 0, expiration);
+                }
+                else if (expirationType == "absolute")
+                {
+                    entry.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(expiration);
+                }
+                else
+                    throw new ArgumentException($"'{expirationType}' is not a known type of expiration");
+
                 var result = new Node();
                 await signaler.ScopeAsync("slots.result", result, async () =>
                 {
