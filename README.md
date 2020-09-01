@@ -7,7 +7,7 @@ Cache slots for Magic, more specifically the following slots.
 
 * __[cache.set]__ - Adds the specified item to the cache.
 * __[cache.get]__ - Returns a previously cached item, if existing.
-* __[cache.try-get]__ - Attempts to retrieve an item from cache, and if not existing, invokes __[.lambda]__ to retrieve item, and saves it to cache, before returning it to the client.
+* __[cache.try-get]__ - Attempts to retrieve an item from cache, and if not existing, invokes __[.lambda]__ to retrieve item, and saves it to cache, before returning it to the caller.
 
 All of the above slots requires a key as its value.
 
