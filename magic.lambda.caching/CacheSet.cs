@@ -40,7 +40,8 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var key = input.GetEx<string>();
+            var key = input.GetEx<string>() ?? 
+                throw new ArgumentNullException("[cache.set] must be given a key");
             var val = input.Children.FirstOrDefault(x => x.Name == "value")?.Value;
 
             // Checking if value is null,l at which point we simply remove cached item.
