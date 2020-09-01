@@ -86,7 +86,7 @@ namespace magic.lambda.caching
             });
         }
 
-        #region [ -- Private helepr methods -- ]
+        #region [ -- Private helper methods -- ]
 
         void ConfigureCacheObject(ICacheEntry entry, Node input)
         {
