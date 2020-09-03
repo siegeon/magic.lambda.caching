@@ -47,6 +47,15 @@ cache.get:foo");
         }
 
         [Fact]
+        public void CacheSetGetNoConfig()
+        {
+            var lambda = Common.Evaluate(@"cache.set:foo
+   value:howdy world
+cache.get:foo", false);
+            Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
         public void CacheSetAbsoluteExpiration()
         {
             var lambda = Common.Evaluate(@"cache.set:foo
@@ -80,6 +89,17 @@ cache.get:foo");
    .lambda
       return:Howdy World
 cache.get:foo");
+            Assert.Equal("Howdy World", lambda.Children.First().Value);
+            Assert.Equal("Howdy World", lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheTryGetNoConfig()
+        {
+            var lambda = Common.Evaluate(@"cache.try-get:foo
+   .lambda
+      return:Howdy World
+cache.get:foo", false);
             Assert.Equal("Howdy World", lambda.Children.First().Value);
             Assert.Equal("Howdy World", lambda.Children.Skip(1).First().Value);
         }
