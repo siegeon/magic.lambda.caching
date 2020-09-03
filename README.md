@@ -82,7 +82,7 @@ are supplied as you invoke **[cache.set]** and **[cache.try-get]**. This can be 
     "caching": {
       "expiration": 5,
       "expiration-type": "sliding"
-    }, /* ... rest of your appsettings.json file goes here ... */
+    }
 ```
 
 ## License
