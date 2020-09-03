@@ -26,12 +26,44 @@ cache.get:foo");
         }
 
         [Fact]
+        public void CacheSetNullifyGet()
+        {
+            var lambda = Common.Evaluate(@"cache.set:foo
+   expiration:5
+   expiration-type:sliding
+   value:howdy world
+cache.set:foo
+cache.get:foo");
+            Assert.Null(lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
         public void CacheSetGetConfig()
         {
             var lambda = Common.Evaluate(@"cache.set:foo
    value:howdy world
 cache.get:foo");
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetAbsoluteExpiration()
+        {
+            var lambda = Common.Evaluate(@"cache.set:foo
+   expiration:5
+   expiration-type:absolute
+   value:howdy world
+cache.get:foo");
+            Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetBogusExpiration()
+        {
+            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.set:foo
+   expiration:5
+   expiration-type:absoluteXX
+   value:howdy world"));
         }
 
         [Fact]
