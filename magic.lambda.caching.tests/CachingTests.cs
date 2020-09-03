@@ -80,6 +80,7 @@ cache.get:foo");
    .lambda
       return:Howdy World
 cache.get:foo");
+            Assert.Equal("Howdy World", lambda.Children.First().Value);
             Assert.Equal("Howdy World", lambda.Children.Skip(1).First().Value);
         }
 

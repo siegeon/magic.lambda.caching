@@ -25,7 +25,7 @@ namespace magic.lambda.caching
         /// <param name="cache">Actual implementation.</param>
         public CacheGet(IMemoryCache cache)
         {
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            _cache = cache;
         }
 
         /// <summary>

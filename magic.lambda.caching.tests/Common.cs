@@ -19,9 +19,9 @@ namespace magic.lambda.caching.tests
 {
     public static class Common
     {
-        static public Node Evaluate(string hl)
+        static public Node Evaluate(string hl, bool config = true)
         {
-            var signaler = Initialize();
+            var signaler = Initialize(config);
             var lambda = new Parser(hl).Lambda();
             signaler.Signal("eval", lambda);
             return lambda;
@@ -35,7 +35,7 @@ namespace magic.lambda.caching.tests
             return lambda;
         }
 
-        public static ISignaler Initialize()
+        public static ISignaler Initialize(bool config = true)
         {
             var services = new ServiceCollection();
             var mockConfiguration = new Mock<IConfiguration>();

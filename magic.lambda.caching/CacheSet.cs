@@ -29,8 +29,8 @@ namespace magic.lambda.caching
         /// <param name="configuration">Configuration, necessary to figure out default settings, if no settings are passed in.</param>
         public CacheSet(IMemoryCache cache, IConfiguration configuration)
         {
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _cache = cache;
+            _configuration = configuration;
         }
 
         /// <summary>
