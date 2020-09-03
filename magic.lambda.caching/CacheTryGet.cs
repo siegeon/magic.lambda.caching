@@ -42,19 +42,14 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var key = input.GetEx<string>() ?? 
-                throw new ArgumentException("[cache.try-get] must be given a key");
+            var args = GetArgs(input);
 
-            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda");
-            if (lambda == null)
-                throw new ArgumentException("[cache.try-get] must have a [.lambda]");
-
-            input.Value = _cache.GetOrCreate(key, entry =>
+            input.Value = _cache.GetOrCreate(args.Item1, entry =>
             {
                 var result = new Node();
                 signaler.Scope("slots.result", result, () =>
                 {
-                    signaler.Signal("eval", lambda.Clone());
+                    signaler.Signal("eval", args.Item2.Clone());
                 });
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result;
@@ -68,19 +63,14 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public async Task SignalAsync(ISignaler signaler, Node input)
         {
-            var key = input.GetEx<string>() ?? 
-                throw new ArgumentException("[cache.try-get] must be given a key");
+            var args = GetArgs(input);
 
-            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda");
-            if (lambda == null)
-                throw new ArgumentException("[cache.try-get] must have a [.lambda]");
-
-            input.Value = await _cache.GetOrCreate(key, async entry =>
+            input.Value = await _cache.GetOrCreate(args.Item1, async entry =>
             {
                 var result = new Node();
                 await signaler.ScopeAsync("slots.result", result, async () =>
                 {
-                    await signaler.SignalAsync("wait.eval", lambda.Clone());
+                    await signaler.SignalAsync("wait.eval", args.Item2.Clone());
                 });
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result;
@@ -88,6 +78,20 @@ namespace magic.lambda.caching
         }
 
         #region [ -- Private helper methods -- ]
+
+        /*
+         * Returns arguments specified to invocation.
+         */
+        (string, Node) GetArgs(Node input)
+        {
+            var key = input.GetEx<string>() ?? 
+                throw new ArgumentException("[cache.try-get] must be given a key");
+
+            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda");
+            if (lambda == null)
+                throw new ArgumentException("[cache.try-get] must have a [.lambda]");
+            return (key, lambda);
+        }
 
         void ConfigureCacheObject(ICacheEntry entry, Node input)
         {
