@@ -61,13 +61,9 @@ namespace magic.lambda.caching
 
             var options = new MemoryCacheEntryOptions();
             if (expirationType == "sliding")
-            {
                 options.SlidingExpiration = new TimeSpan(0, 0, expiration);
-            }
             else if (expirationType == "absolute")
-            {
                 options.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(expiration);
-            }
             else
                 throw new ArgumentException($"'{expirationType}' is not a known type of expiration");
             _cache.Set(key, val, options);

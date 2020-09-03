@@ -72,7 +72,6 @@ namespace magic.lambda.caching
                 {
                     await signaler.SignalAsync("wait.eval", args.Item2.Clone());
                 });
-                System.Console.WriteLine(entry.Value);
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result;
             });
@@ -88,9 +87,9 @@ namespace magic.lambda.caching
             var key = input.GetEx<string>() ?? 
                 throw new ArgumentException("[cache.try-get] must be given a key");
 
-            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda");
-            if (lambda == null)
+            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda") ??
                 throw new ArgumentException("[cache.try-get] must have a [.lambda]");
+
             return (key, lambda);
         }
 
