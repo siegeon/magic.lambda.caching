@@ -20,7 +20,6 @@ namespace magic.lambda.caching.tests
    expiration-type:sliding
    value:howdy world
 cache.get:foo");
-            System.Console.WriteLine(lambda.ToHyperlambda());
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
         }
     }
