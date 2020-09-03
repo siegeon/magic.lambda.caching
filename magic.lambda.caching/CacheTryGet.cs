@@ -28,6 +28,7 @@ namespace magic.lambda.caching
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
+        /// <param name="configuration">Configuration, necessary to figure out default settings, if no settings are passed in.</param>
         public CacheTryGet(IMemoryCache cache, IConfiguration configuration)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
@@ -42,11 +43,11 @@ namespace magic.lambda.caching
         public void Signal(ISignaler signaler, Node input)
         {
             var key = input.GetEx<string>() ?? 
-                throw new ArgumentNullException("[cache.try-get] must be given a key");
+                throw new ArgumentException("[cache.try-get] must be given a key");
 
             var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda");
             if (lambda == null)
-                throw new ArgumentNullException("[cache.try-get] must have a [.lambda]");
+                throw new ArgumentException("[cache.try-get] must have a [.lambda]");
 
             input.Value = _cache.GetOrCreate(key, entry =>
             {
@@ -68,11 +69,11 @@ namespace magic.lambda.caching
         public async Task SignalAsync(ISignaler signaler, Node input)
         {
             var key = input.GetEx<string>() ?? 
-                throw new ArgumentNullException("[cache.try-get] must be given a key");
+                throw new ArgumentException("[cache.try-get] must be given a key");
 
             var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda");
             if (lambda == null)
-                throw new ArgumentNullException("[cache.try-get] must have a [.lambda]");
+                throw new ArgumentException("[cache.try-get] must have a [.lambda]");
 
             input.Value = await _cache.GetOrCreate(key, async entry =>
             {

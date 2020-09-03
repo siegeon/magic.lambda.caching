@@ -26,6 +26,7 @@ namespace magic.lambda.caching
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
+        /// <param name="configuration">Configuration, necessary to figure out default settings, if no settings are passed in.</param>
         public CacheSet(IMemoryCache cache, IConfiguration configuration)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
@@ -40,7 +41,7 @@ namespace magic.lambda.caching
         public void Signal(ISignaler signaler, Node input)
         {
             var key = input.GetEx<string>() ?? 
-                throw new ArgumentNullException("[cache.set] must be given a key");
+                throw new ArgumentException("[cache.set] must be given a key");
             var val = input.Children.FirstOrDefault(x => x.Name == "value")?.Value;
 
             // Checking if value is null,l at which point we simply remove cached item.
