@@ -22,5 +22,24 @@ namespace magic.lambda.caching.tests
 cache.get:foo");
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
         }
+
+        [Fact]
+        public void CacheSetGetConfig()
+        {
+            var lambda = Common.Evaluate(@"cache.set:foo
+   value:howdy world
+cache.get:foo");
+            Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheTryGet()
+        {
+            var lambda = Common.Evaluate(@"cache.try-get:foo
+   .lambda
+      return:Howdy World
+cache.get:foo");
+            Assert.Equal("Howdy World", lambda.Children.Skip(1).First().Value);
+        }
     }
 }

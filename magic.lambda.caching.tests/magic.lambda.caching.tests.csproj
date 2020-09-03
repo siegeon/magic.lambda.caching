@@ -22,6 +22,7 @@
     </PackageReference>
     <PackageReference Include="magic.signals" Version="8.1.8" />
     <PackageReference Include="magic.lambda" Version="8.1.8" />
+    <PackageReference Include="magic.lambda.slots" Version="8.1.8" />
   </ItemGroup>
 
   <ItemGroup>

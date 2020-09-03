@@ -39,7 +39,8 @@ namespace magic.lambda.caching.tests
         {
             var services = new ServiceCollection();
             var mockConfiguration = new Mock<IConfiguration>();
-            mockConfiguration.SetupGet(x => x[It.IsAny<string>()]).Returns("bar-xx");
+            mockConfiguration.SetupGet(x => x[It.Is<string>(x => x == "magic:caching:expiration")]).Returns("5");
+            mockConfiguration.SetupGet(x => x[It.Is<string>(x => x == "magic:caching:expiration-type")]).Returns("sliding");
             services.AddTransient((svc) => mockConfiguration.Object);
             services.AddTransient<ISignaler, Signaler>();
             services.AddMemoryCache();
