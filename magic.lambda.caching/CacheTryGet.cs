@@ -65,13 +65,14 @@ namespace magic.lambda.caching
         {
             var args = GetArgs(input);
 
-            input.Value = await _cache.GetOrCreate(args.Item1, async entry =>
+            input.Value = await _cache.GetOrCreateAsync(args.Item1, async entry =>
             {
                 var result = new Node();
                 await signaler.ScopeAsync("slots.result", result, async () =>
                 {
                     await signaler.SignalAsync("wait.eval", args.Item2.Clone());
                 });
+                System.Console.WriteLine(entry.Value);
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result;
             });
