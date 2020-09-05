@@ -12,7 +12,7 @@
     <PackageLicenseUrl>https://raw.githubusercontent.com/polterguy/magic.lambda.caching/master/LICENSE</PackageLicenseUrl>
     <PackageIconUrl>https://polterguy.github.io/favicon.ico</PackageIconUrl>
     <PackOnBuild>true</PackOnBuild>
-    <PackageVersion>8.1.8</PackageVersion>
+    <PackageVersion>8.1.9</PackageVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/polterguy/magic.lambda.caching.git</RepositoryUrl>
@@ -33,8 +33,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="magic.node.extensions" Version="8.1.8" />
-    <PackageReference Include="magic.signals.contracts" Version="8.1.8" />
+    <PackageReference Include="magic.node.extensions" Version="8.1.9" />
+    <PackageReference Include="magic.signals.contracts" Version="8.1.9" />
   </ItemGroup>
 
 </Project>
