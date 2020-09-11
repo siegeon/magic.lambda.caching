@@ -7,10 +7,10 @@
     <Authors>Thomas Hansen</Authors>
     <Company>Thomas Hansen</Company>
     <Copyright>Thomas Hansen, thomas@gaiasoul.com</Copyright>
-    <Description>Caching helper slots for Magic, allowing you to cache items in Hyperlambda.</Description>
+    <Description>Caching helper slots for Magic, allowing you to easily cache items in Hyperlambda. Uses Memory Cache, and is not distributed in any ways.</Description>
     <PackageProjectUrl>https://github.com/polterguy/magic.lambda.caching</PackageProjectUrl>
     <PackOnBuild>true</PackOnBuild>
-    <PackageVersion>8.1.10</PackageVersion>
+    <PackageVersion>8.1.11</PackageVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/polterguy/magic.lambda.caching.git</RepositoryUrl>
