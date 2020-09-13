@@ -28,9 +28,4 @@
   <ItemGroup>
     <ProjectReference Include="..\magic.lambda.caching\magic.lambda.caching.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Configuration">
-    </Reference>
-  </ItemGroup>
 </Project>

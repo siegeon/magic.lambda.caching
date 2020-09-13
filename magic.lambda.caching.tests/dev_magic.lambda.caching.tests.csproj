@@ -25,9 +25,4 @@
 	<ProjectReference Include="..\..\magic.lambda.slots\magic.lambda.slots\dev_magic.lambda.slots.csproj" />
 	<ProjectReference Include="..\magic.lambda.caching\dev_magic.lambda.caching.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Configuration">
-    </Reference>
-  </ItemGroup>
 </Project>
