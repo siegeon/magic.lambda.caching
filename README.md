@@ -1,7 +1,7 @@
 
 # Magic Lambda Caching
 
-[![Build status](https://travis-ci.org/polterguy/magic.lambda.caching.svg?master)](https://travis-ci.org/polterguy/magic.lambda.caching)
+[![Build status](https://travis-ci.com/polterguy/magic.lambda.caching.svg?master)](https://travis-ci.com/polterguy/magic.lambda.caching)
 
 Cache helper slots for Magic, more specifically the following slots.
 
