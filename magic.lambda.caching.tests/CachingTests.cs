@@ -158,7 +158,7 @@ cache.get:foo");
         [Fact]
         public async Task CacheTryGetAsync()
         {
-            var lambda = await Common.EvaluateAsync(@"wait.cache.try-get:foo
+            var lambda = await Common.EvaluateAsync(@"cache.try-get:foo
    .lambda
       return:Howdy World
 cache.get:foo");
@@ -169,7 +169,7 @@ cache.get:foo");
         [Fact]
         public async Task CacheTryGetNodeAsync()
         {
-            var lambda = await Common.EvaluateAsync(@"wait.cache.try-get:foo
+            var lambda = await Common.EvaluateAsync(@"cache.try-get:foo
    .lambda
       return
          foo:bar

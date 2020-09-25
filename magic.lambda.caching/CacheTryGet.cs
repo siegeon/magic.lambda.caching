@@ -18,7 +18,6 @@ namespace magic.lambda.caching
     /// [cache.try-get] slot saving its first child node's value to the memory cache.
     /// </summary>
     [Slot(Name = "cache.try-get")]
-    [Slot(Name = "wait.cache.try-get")]
     public class CacheTryGet : ISlotAsync, ISlot
     {
         readonly IMemoryCache _cache;
@@ -70,7 +69,7 @@ namespace magic.lambda.caching
                 var result = new Node();
                 await signaler.ScopeAsync("slots.result", result, async () =>
                 {
-                    await signaler.SignalAsync("wait.eval", args.Item2.Clone());
+                    await signaler.SignalAsync("eval", args.Item2.Clone());
                 });
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result;
