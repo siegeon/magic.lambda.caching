@@ -51,8 +51,9 @@ namespace magic.lambda.caching
                     signaler.Signal("eval", args.Item2.Clone());
                 });
                 ConfigureCacheObject(entry, input);
-                return result.Value ?? result;
+                return result.Value ?? result.Clone();
             });
+            input.Clear();
         }
 
         /// <summary>
@@ -72,8 +73,9 @@ namespace magic.lambda.caching
                     await signaler.SignalAsync("eval", args.Item2.Clone());
                 });
                 ConfigureCacheObject(entry, input);
-                return result.Value ?? result;
+                return result.Value ?? result.Clone();
             });
+            input.Clear();
         }
 
         #region [ -- Private helper methods -- ]
