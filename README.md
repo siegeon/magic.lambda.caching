@@ -6,6 +6,7 @@ Cache helper slots for Magic, more specifically the following slots.
 * __[cache.set]__ - Adds the specified item to the cache.
 * __[cache.get]__ - Returns a previously cached item, if existing.
 * __[cache.try-get]__ - Attempts to retrieve an item from cache, and if not existing, invokes __[.lambda]__ to retrieve item, and saves it to cache, before returning it to the caller.
+* __[cache.clear]__ - Completely empties cache.
 
 All of the above slots requires a key as its value.
 
@@ -65,6 +66,22 @@ cache.try-get:cache-key
    .lambda
       return:Howdy world
 ```
+
+## [cache.clear]
+
+This is a shorthand slot to completely clear cache, removing all items.
+
+```
+cache.set:cache-item-key
+   expiration:5
+   expiration-type:sliding
+   value:Howdy world
+cache.clear
+cache.get:cache-item-key
+```
+
+Notice, the above Hyperlambda should not return any item at its last invocation to **[cache.get]**
+since the cache was cleared before invoking it.
 
 ## Quality gates
 
