@@ -39,12 +39,12 @@ namespace magic.lambda.caching
         {
             var args = GetArgs(input);
 
-            input.Value = _cache.GetOrCreate(args.Item1, entry =>
+            input.Value = _cache.GetOrCreate(args.Key, entry =>
             {
                 var result = new Node();
                 signaler.Scope("slots.result", result, () =>
                 {
-                    signaler.Signal("eval", args.Item2.Clone());
+                    signaler.Signal("eval", args.Lambda.Clone());
                 });
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result.Clone();
@@ -61,12 +61,12 @@ namespace magic.lambda.caching
         {
             var args = GetArgs(input);
 
-            input.Value = await _cache.GetOrCreateAsync(args.Item1, async entry =>
+            input.Value = await _cache.GetOrCreateAsync(args.Key, async entry =>
             {
                 var result = new Node();
                 await signaler.ScopeAsync("slots.result", result, async () =>
                 {
-                    await signaler.SignalAsync("eval", args.Item2.Clone());
+                    await signaler.SignalAsync("eval", args.Lambda.Clone());
                 });
                 ConfigureCacheObject(entry, input);
                 return result.Value ?? result.Clone();
@@ -79,7 +79,7 @@ namespace magic.lambda.caching
         /*
          * Returns arguments specified to invocation.
          */
-        (string, Node) GetArgs(Node input)
+        (string Key, Node Lambda) GetArgs(Node input)
         {
             var key = input.GetEx<string>() ?? 
                 throw new ArgumentException("[cache.try-get] must be given a key");

@@ -17,8 +17,8 @@ namespace magic.lambda.caching
     /// </summary>
     public class MagicMemoryCache : IMagicMemoryCache
     {
-        private readonly IMemoryCache _cache;
-        private readonly ConcurrentDictionary<object, ICacheEntry> _items = new ConcurrentDictionary<object, ICacheEntry>();
+        readonly IMemoryCache _cache;
+        readonly ConcurrentDictionary<object, ICacheEntry> _items = new ConcurrentDictionary<object, ICacheEntry>();
 
         /// <summary>
         /// Creates an instance of your type.
@@ -27,12 +27,6 @@ namespace magic.lambda.caching
         public MagicMemoryCache(IMemoryCache cache)
         {
             _cache = cache;
-        }
-
-        /// <inheritdoc cref="IDisposable.Dispose"/>
-        public void Dispose()
-        {
-            _cache.Dispose();
         }
 
         /// <inheritdoc cref="IMemoryCache.TryGetValue"/>
@@ -48,7 +42,7 @@ namespace magic.lambda.caching
             entry.RegisterPostEvictionCallback(PostEvictionCallback);
             _items.AddOrUpdate(key, entry, (o, cacheEntry) =>
             {
-                cacheEntry.Value = entry;
+                entry.Value = cacheEntry.Value;
                 return cacheEntry;
             });
             return entry;
@@ -79,6 +73,12 @@ namespace magic.lambda.caching
         /// Returns all keys in cache.
         /// </summary>
         public IEnumerator<object> Keys => _items.Keys.GetEnumerator();
+
+        /// <inheritdoc cref="IDisposable.Dispose"/>
+        public void Dispose()
+        {
+            _cache.Dispose();
+        }
 
         #region [ -- Private helper methods -- ]
 
