@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using magic.node;
 using magic.node.extensions;
@@ -19,18 +18,15 @@ namespace magic.lambda.caching
     [Slot(Name = "cache.set")]
     public class CacheSet : ISlot
     {
-        readonly IMemoryCache _cache;
-        readonly IConfiguration _configuration;
+        readonly IMagicMemoryCache _cache;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        /// <param name="configuration">Configuration, necessary to figure out default settings, if no settings are passed in.</param>
-        public CacheSet(IMemoryCache cache, IConfiguration configuration)
+        public CacheSet(IMagicMemoryCache cache)
         {
             _cache = cache;
-            _configuration = configuration;
         }
 
         /// <summary>
@@ -52,12 +48,8 @@ namespace magic.lambda.caching
             }
 
             // Caller tries to actually save an object to cache.
-            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<int>() ?? 
-                int.Parse(_configuration["magic:caching:expiration"] ?? "5");
-
-            var expirationType = input.Children.FirstOrDefault(x => x.Name == "expiration-type")?.GetEx<string>() ?? 
-                _configuration["magic:caching:expiration-type"] ??
-                "sliding";
+            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<int>() ?? 5;
+            var expirationType = input.Children.FirstOrDefault(x => x.Name == "expiration-type")?.GetEx<string>() ?? "sliding";
 
             var options = new MemoryCacheEntryOptions();
             if (expirationType == "sliding")

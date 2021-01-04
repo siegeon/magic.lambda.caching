@@ -3,18 +3,16 @@
  * See the enclosed LICENSE file for details.
  */
 
-using Microsoft.Extensions.Caching.Memory;
 using magic.node;
-using magic.node.extensions;
 using magic.signals.contracts;
 
 namespace magic.lambda.caching
 {
     /// <summary>
-    /// [cache.get] slot returning an item from the cache, if existing.
+    /// [cache.clear] slot clearing memory cache entirely.
     /// </summary>
-    [Slot(Name = "cache.get")]
-    public class CacheGet : ISlot
+    [Slot(Name = "cache.clear")]
+    public class CacheClear : ISlot
     {
         readonly IMagicMemoryCache _cache;
 
@@ -22,7 +20,7 @@ namespace magic.lambda.caching
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheGet(IMagicMemoryCache cache)
+        public CacheClear(IMagicMemoryCache cache)
         {
             _cache = cache;
         }
@@ -34,8 +32,7 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var key = input.GetEx<string>();
-            input.Value = _cache.Get(key);
+            _cache.Clear();
         }
     }
 }

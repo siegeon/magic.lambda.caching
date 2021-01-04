@@ -66,20 +66,6 @@ cache.try-get:cache-key
       return:Howdy world
 ```
 
-## Configuration settings
-
-You can provide default settings for both **[expiration]** and **[expiration-type]** in
-your _"appsettings.json"_ file, allowing you to provide default values, used if no explicit arguments
-are supplied as you invoke **[cache.set]** and **[cache.try-get]**. This can be done as follows.
-
-```json
-  "magic": {
-    "caching": {
-      "expiration": 5,
-      "expiration-type": "sliding"
-    }
-```
-
 ## Quality gates
 
 - [![Build status](https://travis-ci.com/polterguy/magic.lambda.caching.svg?master)](https://travis-ci.com/polterguy/magic.lambda.caching)
