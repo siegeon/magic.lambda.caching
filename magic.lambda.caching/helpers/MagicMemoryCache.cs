@@ -3,13 +3,14 @@
  * See the enclosed LICENSE file for details.
  */
 
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace magic.lambda.caching
+namespace magic.lambda.caching.helpers
 {
     /// <summary>
     /// Memory cache extension implementation class allowing developer to query keys,
@@ -66,7 +67,11 @@ namespace magic.lambda.caching
         /// <inheritdoc cref="IEnumerable.GetEnumerator"/>
         public IEnumerator<KeyValuePair<object, object>> GetEnumerator()
         {
-            return _items.Select(pair => new KeyValuePair<object, object>(pair.Key, pair.Value.Value)).GetEnumerator();
+            foreach (var idx in _items.Keys.ToList())
+            {
+                if (_cache.TryGetValue(idx, out object value))
+                    yield return new KeyValuePair<object, object>(idx, value);
+            }
         }
 
         /// <summary>

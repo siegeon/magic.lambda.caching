@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace magic.lambda.caching
+namespace magic.lambda.caching.helpers
 {
     /// <summary>
     /// Memory cache extension interface allowing developer to query keys,

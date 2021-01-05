@@ -7,7 +7,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace magic.lambda.caching
+namespace magic.lambda.caching.helpers
 {
     /// <summary>
     /// Memory cache extension helper methods to avoid breaking existing interface of IMemoryCache too much.
