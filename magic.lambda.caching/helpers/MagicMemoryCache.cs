@@ -27,7 +27,7 @@ namespace magic.lambda.caching.helpers
          * Duplicated dictionary. Looks a bit stupid, but is necessary to iterate cache items,
          * and clear all items altogether.
          */
-        readonly ConcurrentDictionary<object, ICacheEntry> _items = new ConcurrentDictionary<object, ICacheEntry>();
+        readonly ConcurrentDictionary<string, bool> _items = new ConcurrentDictionary<string, bool>();
 
         /// <summary>
         /// Creates an instance of your type.
@@ -49,11 +49,7 @@ namespace magic.lambda.caching.helpers
         {
             var entry = _cache.CreateEntry(key);
             entry.RegisterPostEvictionCallback(PostEvictionCallback);
-            _items.AddOrUpdate(key, entry, (o, cacheEntry) =>
-            {
-                entry.Value = cacheEntry.Value;
-                return cacheEntry;
-            });
+            _items.TryAdd(key.ToString(), true);
             return entry;
         }
 
@@ -73,12 +69,12 @@ namespace magic.lambda.caching.helpers
         }
 
         /// <inheritdoc cref="IEnumerable.GetEnumerator"/>
-        public IEnumerator<KeyValuePair<object, object>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             foreach (var idx in _items.Keys.ToList())
             {
                 if (_cache.TryGetValue(idx, out object value))
-                    yield return new KeyValuePair<object, object>(idx, value);
+                    yield return new KeyValuePair<string, object>(idx, value);
             }
         }
 
@@ -105,7 +101,7 @@ namespace magic.lambda.caching.helpers
         private void PostEvictionCallback(object key, object value, EvictionReason reason, object state)
         {
             if (reason != EvictionReason.Replaced)
-                _items.TryRemove(key, out var _);
+                _items.TryRemove(key.ToString(), out var _);
         }
 
         #endregion

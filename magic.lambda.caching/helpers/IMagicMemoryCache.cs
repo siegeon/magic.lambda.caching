@@ -12,7 +12,7 @@ namespace magic.lambda.caching.helpers
     /// Memory cache extension interface allowing developer to query keys,
     /// and clear (all) items in one go.
     /// </summary>
-    public interface IMagicMemoryCache : IMemoryCache, IEnumerable<KeyValuePair<object, object>>
+    public interface IMagicMemoryCache : IMemoryCache, IEnumerable<KeyValuePair<string, object>>
     {
         /// <summary>
         /// Clears cache entirely.
