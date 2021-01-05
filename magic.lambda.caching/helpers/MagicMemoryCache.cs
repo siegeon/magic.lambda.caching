@@ -18,7 +18,15 @@ namespace magic.lambda.caching.helpers
     /// </summary>
     public class MagicMemoryCache : IMagicMemoryCache
     {
+        /*
+         * Actual implementation, simply using default IMemoryCache instance.
+         */
         readonly IMemoryCache _cache;
+
+        /*
+         * Duplicated dictionary. Looks a bit stupid, but is necessary to iterate cache items,
+         * and clear all items altogether.
+         */
         readonly ConcurrentDictionary<object, ICacheEntry> _items = new ConcurrentDictionary<object, ICacheEntry>();
 
         /// <summary>
@@ -74,11 +82,6 @@ namespace magic.lambda.caching.helpers
             }
         }
 
-        /// <summary>
-        /// Returns all keys in cache.
-        /// </summary>
-        public IEnumerator<object> Keys => _items.Keys.GetEnumerator();
-
         /// <inheritdoc cref="IDisposable.Dispose"/>
         public void Dispose()
         {
@@ -88,7 +91,7 @@ namespace magic.lambda.caching.helpers
         #region [ -- Private helper methods -- ]
 
         /*
-         * Untyped explicit implementation of base interface.
+         * Untyped explicit implementation of interface.
          */
         IEnumerator IEnumerable.GetEnumerator()
         {
