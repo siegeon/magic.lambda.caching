@@ -27,7 +27,7 @@ namespace magic.lambda.caching.helpers
          * Duplicated dictionary. Looks a bit stupid, but is necessary to iterate cache items,
          * and clear all items altogether.
          */
-        readonly ConcurrentDictionary<string, bool> _items = new ConcurrentDictionary<string, bool>();
+        readonly ConcurrentDictionary<string, object> _items = new ConcurrentDictionary<string, object>();
 
         /// <summary>
         /// Creates an instance of your type.
@@ -49,7 +49,7 @@ namespace magic.lambda.caching.helpers
         {
             var entry = _cache.CreateEntry(key);
             entry.RegisterPostEvictionCallback(PostEvictionCallback);
-            _items.TryAdd(key.ToString(), true);
+            _items.TryAdd(key.ToString(), new object());
             return entry;
         }
 
