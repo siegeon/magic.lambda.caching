@@ -16,70 +16,62 @@ namespace magic.lambda.caching.helpers
     {
         public static T Set<T>(this IMagicMemoryCache cache, object key, T value)
         {
-            using (var entry = cache.CreateEntry(key))
-            {
-                entry.Value = value;
-                return value;
-            }
+            var entry = cache.CreateEntry(key);
+            entry.Value = value;
+            entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
+            return value;
         }
 
         public static T Set<T>(this IMagicMemoryCache cache, object key, T value, CacheItemPriority priority)
         {
-            using (var entry = cache.CreateEntry(key))
-            {
-                entry.Priority = priority;
-                entry.Value = value;
-                return value;
-            }
+            var entry = cache.CreateEntry(key);
+            entry.Priority = priority;
+            entry.Value = value;
+            entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
+            return value;
         }
 
         public static T Set<T>(this IMagicMemoryCache cache, object key, T value, DateTimeOffset absoluteExpiration)
         {
-            using (var entry = cache.CreateEntry(key))
-            {
-                entry.AbsoluteExpiration = absoluteExpiration;
-                entry.Value = value;
-                return value;
-            }
+            var entry = cache.CreateEntry(key);
+            entry.AbsoluteExpiration = absoluteExpiration;
+            entry.Value = value;
+            entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
+            return value;
         }
 
         public static T Set<T>(this IMagicMemoryCache cache, object key, T value, TimeSpan absoluteExpirationRelativeToNow)
         {
-            using (var entry = cache.CreateEntry(key))
-            {
-                entry.AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
-                entry.Value = value;
-                return value;
-            }
+            var entry = cache.CreateEntry(key);
+            entry.AbsoluteExpirationRelativeToNow = absoluteExpirationRelativeToNow;
+            entry.Value = value;
+            entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
+            return value;
         }
 
         public static T Set<T>(this IMagicMemoryCache cache, object key, T value, MemoryCacheEntryOptions options)
         {
-            using (var entry = cache.CreateEntry(key))
-            {
-                if (options != null)
-                    entry.SetOptions(options);
-                entry.Value = value;
-                return value;
-            }
+            var entry = cache.CreateEntry(key);
+            if (options != null)
+                entry.SetOptions(options);
+            entry.Value = value;
+            entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
+            return value;
         }
 
         public static object Get(this IMagicMemoryCache cache, object key)
         {
-            if (cache.TryGetValue(key, out object result))
-                return result;
-            return null;
+            return cache.TryGetValue(key, out object result) ? result : null;
         }
 
         public static TItem GetOrCreate<TItem>(this IMagicMemoryCache cache, object key, Func<ICacheEntry, TItem> factory)
         {
             if (!cache.TryGetValue(key, out var result))
             {
-                using (var entry = cache.CreateEntry(key))
-                {
-                    result = factory(entry);
-                    entry.SetValue(result);
-                }
+                var entry = cache.CreateEntry(key);
+                result = factory(entry);
+                entry.SetValue(result);
+                entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
             }
 
             return (TItem)result;
@@ -89,11 +81,10 @@ namespace magic.lambda.caching.helpers
         {
             if (!cache.TryGetValue(key, out object result))
             {
-                using (var entry = cache.CreateEntry(key))
-                {
-                    result = await factory(entry);
-                    entry.SetValue(result);
-                }
+                var entry = cache.CreateEntry(key);
+                result = await factory(entry);
+                entry.SetValue(result);
+                entry.Dispose(); // Commits item to cache. Notice, do *not* use 'using' pattern here, since it might commit a null value to cache.
             }
             return (TItem)result;
         }

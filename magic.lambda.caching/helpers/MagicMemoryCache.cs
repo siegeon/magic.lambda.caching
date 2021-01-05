@@ -66,9 +66,9 @@ namespace magic.lambda.caching.helpers
         /// <inheritdoc cref="IMagicMemoryCache.Clear"/>
         public void Clear()
         {
-            foreach (var cacheEntry in _items.Keys.ToList())
+            foreach (var cacheEntry in this)
             {
-                _cache.Remove(cacheEntry);
+                _cache.Remove(cacheEntry.Key);
             }
         }
 
