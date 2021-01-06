@@ -17,7 +17,6 @@ Invoke this slot to save an item to the cache. The slot takes 3 properties, whic
 
 * __[value]__ - The item to actually save to the cache. If you pass in null, any existing cache items will be removed.
 * __[expiration]__ - Number of seconds to keep the item in the cache.
-* __[expiration-type]__ - Type of expiration, can be _"sliding"_ or _"absolute"_.
 
 Absolute expiration implies that the item will be kept in the cache, for x number of seconds, before
 evicted from the cache. Sliding expiration implies that if the cached item is accessed more frequently
@@ -33,7 +32,6 @@ every 5 seconds.
 ```
 cache.set:cache-item-key
    expiration:5
-   expiration-type:sliding
    value:Howdy world
 ```
 
@@ -63,7 +61,6 @@ given the same key.
 ```
 cache.try-get:cache-key
    expiration:5
-   expiration-type:absolute
    .lambda
       return:Howdy world
 ```
@@ -75,7 +72,6 @@ This is a shorthand slot to completely clear cache, removing all items.
 ```
 cache.set:cache-item-key
    expiration:5
-   expiration-type:sliding
    value:Howdy world
 cache.clear
 cache.get:cache-item-key
@@ -91,7 +87,6 @@ Lists all items in cache, and returns to caller.
 ```
 cache.set:cache-item-key
    expiration:5
-   expiration-type:sliding
    value:Howdy world
 cache.list
 ```

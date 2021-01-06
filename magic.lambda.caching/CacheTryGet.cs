@@ -6,7 +6,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -40,15 +39,14 @@ namespace magic.lambda.caching
         {
             var args = GetArgs(input);
 
-            input.Value = _cache.GetOrCreate(args.Key, entry =>
+            input.Value = _cache.GetOrCreate(args.Key, () =>
             {
                 var result = new Node();
                 signaler.Scope("slots.result", result, () =>
                 {
                     signaler.Signal("eval", args.Lambda.Clone());
                 });
-                ConfigureCacheObject(entry, input);
-                return result.Value ?? result.Clone();
+                return (result.Value ?? result.Clone(), args.UtcExpires);
             });
             input.Clear();
         }
@@ -62,15 +60,14 @@ namespace magic.lambda.caching
         {
             var args = GetArgs(input);
 
-            input.Value = await _cache.GetOrCreateAsync(args.Key, async entry =>
+            input.Value = await _cache.GetOrCreateAsync(args.Key, async () =>
             {
                 var result = new Node();
                 await signaler.ScopeAsync("slots.result", result, async () =>
                 {
                     await signaler.SignalAsync("eval", args.Lambda.Clone());
                 });
-                ConfigureCacheObject(entry, input);
-                return result.Value ?? result.Clone();
+                return (result.Value ?? result.Clone(), args.UtcExpires);
             });
             input.Clear();
         }
@@ -80,30 +77,18 @@ namespace magic.lambda.caching
         /*
          * Returns arguments specified to invocation.
          */
-        (string Key, Node Lambda) GetArgs(Node input)
+        (string Key, Node Lambda, DateTime UtcExpires) GetArgs(Node input)
         {
-            var key = input.GetEx<string>() ?? 
+            var key = input.GetEx<string>() ??
                 throw new ArgumentException("[cache.try-get] must be given a key");
 
-            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda") ??
+            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ??
+                5;
+
+            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda") ?? 
                 throw new ArgumentException("[cache.try-get] must have a [.lambda]");
 
-            return (key, lambda);
-        }
-
-        void ConfigureCacheObject(ICacheEntry entry, Node input)
-        {
-            // Caller tries to actually save an object to cache.
-            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<int>() ?? 5;
-
-            var expirationType = input.Children.FirstOrDefault(x => x.Name == "expiration-type")?.GetEx<string>() ?? "sliding";
-
-            if (expirationType == "sliding")
-                entry.SlidingExpiration = new TimeSpan(0, 0, expiration);
-            else if (expirationType == "absolute")
-                entry.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(expiration);
-            else
-                throw new ArgumentException($"'{expirationType}' is not a known type of expiration");
+            return (key, lambda, DateTime.UtcNow.AddSeconds(expiration));
         }
 
         #endregion

@@ -3,7 +3,6 @@
  * See the enclosed LICENSE file for details.
  */
 
-using Microsoft.Extensions.Caching.Memory;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;

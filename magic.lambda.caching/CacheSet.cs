@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.Extensions.Caching.Memory;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -49,17 +48,8 @@ namespace magic.lambda.caching
             }
 
             // Caller tries to actually save an object to cache.
-            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<int>() ?? 5;
-            var expirationType = input.Children.FirstOrDefault(x => x.Name == "expiration-type")?.GetEx<string>() ?? "sliding";
-
-            var options = new MemoryCacheEntryOptions();
-            if (expirationType == "sliding")
-                options.SlidingExpiration = new TimeSpan(0, 0, expiration);
-            else if (expirationType == "absolute")
-                options.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(expiration);
-            else
-                throw new ArgumentException($"'{expirationType}' is not a known type of expiration");
-            _cache.Set(key, val, options);
+            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ?? 5;
+            _cache.Upsert(key, val, DateTime.UtcNow.AddSeconds(expiration));
         }
     }
 }

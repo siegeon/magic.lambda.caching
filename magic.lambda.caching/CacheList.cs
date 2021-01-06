@@ -3,6 +3,7 @@
  * See the enclosed LICENSE file for details.
  */
 
+using System.Linq;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -34,11 +35,10 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            foreach (var idx in _cache)
-            {
-                var value = idx.Value is Node nodeValue ? nodeValue.ToHyperlambda() : idx.Value;
-                input.Add(new Node(idx.Key.ToString(), value));
-            }
+            input.AddRange(
+                _cache
+                    .Items()
+                    .Select(x => new Node(x.Key, x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)));
         }
     }
 }

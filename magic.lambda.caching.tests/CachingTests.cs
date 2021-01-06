@@ -19,7 +19,6 @@ namespace magic.lambda.caching.tests
         {
             var lambda = Common.Evaluate(@"cache.set:foo
    expiration:5
-   expiration-type:sliding
    value:howdy world
 cache.get:foo");
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
@@ -30,7 +29,6 @@ cache.get:foo");
         {
             var lambda = Common.Evaluate(@"cache.set:foo
    expiration:5
-   expiration-type:sliding
    value:howdy world
 cache.set:foo
 cache.get:foo");
@@ -60,19 +58,9 @@ cache.get:foo", false);
         {
             var lambda = Common.Evaluate(@"cache.set:foo
    expiration:5
-   expiration-type:absolute
    value:howdy world
 cache.get:foo");
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
-        }
-
-        [Fact]
-        public void CacheSetBogusExpiration()
-        {
-            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.set:foo
-   expiration:5
-   expiration-type:absoluteXX
-   value:howdy world"));
         }
 
         [Fact]
@@ -109,21 +97,10 @@ cache.get:foo", false);
         {
             var lambda = Common.Evaluate(@"cache.try-get:foo
    expiration:5
-   expiration-type:absolute
    .lambda
       return:Howdy World
 cache.get:foo");
             Assert.Equal("Howdy World", lambda.Children.Skip(1).First().Value);
-        }
-
-        [Fact]
-        public void CacheTryGetBogusExpiration()
-        {
-            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.try-get:foo
-   expiration:5
-   expiration-type:absoluteXX
-   .lambda
-      return:Howdy World"));
         }
 
         [Fact]

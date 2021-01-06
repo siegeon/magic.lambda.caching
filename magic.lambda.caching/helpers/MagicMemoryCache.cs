@@ -5,105 +5,145 @@
 
 using System;
 using System.Linq;
-using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace magic.lambda.caching.helpers
 {
     /// <summary>
-    /// Memory cache extension implementation class allowing developer to query keys,
+    /// Memory cache implementation class allowing developer to query keys,
     /// and clear (all) items in one go.
     /// </summary>
     public class MagicMemoryCache : IMagicMemoryCache
     {
-        /*
-         * Actual implementation, simply using default IMemoryCache instance.
-         */
-        readonly IMemoryCache _cache;
+        // Used to synchronize access to dictionary.
+        readonly SemaphoreSlim _locker = new SemaphoreSlim(1);
 
-        /*
-         * Duplicated dictionary. Looks a bit stupid, but is necessary to iterate cache items,
-         * and clear all items altogether.
-         */
-        readonly ConcurrentDictionary<string, object> _items = new ConcurrentDictionary<string, object>();
+        // Actual items in cache.
+        readonly Dictionary<string, (object Value, DateTime Expires)> _items = new Dictionary<string, (object, DateTime)>();
 
-        /// <summary>
-        /// Creates an instance of your type.
-        /// </summary>
-        /// <param name="cache">Underlaying memory cache to use as implementation.</param>
-        public MagicMemoryCache(IMemoryCache cache)
+        /// <inheritdoc/>
+        public void Upsert(string key, object value, DateTime utcExpiration)
         {
-            _cache = cache;
+            _locker.Wait();
+            try
+            {
+                _items[key] = (Value: value, Expires: utcExpiration);
+            }
+            finally
+            {
+                _locker.Release();
+            }
         }
 
-        /// <inheritdoc cref="IMemoryCache.TryGetValue"/>
-        public bool TryGetValue(object key, out object value)
+        /// <inheritdoc/>
+        public void Remove(string key)
         {
-            return _cache.TryGetValue(key, out value);
+            _locker.Wait();
+            try
+            {
+                _items.Remove(key);
+            }
+            finally
+            {
+                _locker.Release();
+            }
         }
 
-        /// <inheritdoc cref="IMemoryCache.CreateEntry"/>
-        public ICacheEntry CreateEntry(object key)
+        /// <inheritdoc/>
+        public object Get(string key)
         {
-            var entry = _cache.CreateEntry(key);
-            entry.RegisterPostEvictionCallback(PostEvictionCallback);
-            _items.TryAdd(key.ToString(), new object());
-            return entry;
+            _locker.Wait();
+            try
+            {
+                if (_items.TryGetValue(key, out var value))
+                {
+                    if (value.Expires > DateTime.UtcNow)
+                        return value.Value;
+                    else
+                        _items.Remove(key);
+                }
+            }
+            finally
+            {
+                _locker.Release();
+            }
+            return null;
         }
 
-        /// <inheritdoc cref="IMemoryCache.Remove"/>
-        public void Remove(object key)
-        {
-            _cache.Remove(key);
-        }
-
-        /// <inheritdoc cref="IMagicMemoryCache.Clear"/>
+        /// <inheritdoc/>
         public void Clear()
         {
-            foreach (var cacheEntry in this)
+            _locker.Wait();
+            try
             {
-                _cache.Remove(cacheEntry.Key);
+                _items.Clear();
+            }
+            finally
+            {
+                _locker.Release();
             }
         }
 
-        /// <inheritdoc cref="IEnumerable.GetEnumerator"/>
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        /// <inheritdoc/>
+        public IEnumerable<KeyValuePair<string, object>> Items()
         {
-            foreach (var idx in _items.Keys.ToList())
+            _locker.Wait();
+            try
             {
-                if (_cache.TryGetValue(idx, out object value))
-                    yield return new KeyValuePair<string, object>(idx, value);
+                return _items
+                    .Select(x => new KeyValuePair<string, object>(x.Key, x.Value.Value))
+                    .ToList();
+            }
+            finally
+            {
+                _locker.Release();
             }
         }
 
-        /// <inheritdoc cref="IDisposable.Dispose"/>
-        public void Dispose()
+        /// <inheritdoc/>
+        public object GetOrCreate(string key, Func<(object, DateTime)> factory)
         {
-            _cache.Dispose();
+            // Checking if item exists in cache.
+            _locker.Wait();
+            try
+            {
+                // Checking cache.
+                if (_items.TryGetValue(key, out var value) && value.Expires > DateTime.UtcNow)
+                    return value.Value; // Item found in cache, and it's not expired
+
+                // Invoking factory method.
+                value = factory();
+                _items[key] = value;
+                return value.Value;
+            }
+            finally
+            {
+                _locker.Release();
+            }
         }
 
-        #region [ -- Private helper methods -- ]
-
-        /*
-         * Untyped explicit implementation of interface.
-         */
-        IEnumerator IEnumerable.GetEnumerator()
+        /// <inheritdoc/>
+        public async Task<object> GetOrCreateAsync(string key, Func<Task<(object, DateTime)>> factory)
         {
-            return GetEnumerator();
-        }
+            // Checking if item exists in cache.
+            await _locker.WaitAsync();
+            try
+            {
+                // Checking cache.
+                if (_items.TryGetValue(key, out var value) && value.Expires > DateTime.UtcNow)
+                    return value.Value; // Item found in cache, and it's not expired
 
-        /*
-         * Invoked when item is evicted from cache.
-         * Needed to clean up dictionary.
-         */
-        private void PostEvictionCallback(object key, object value, EvictionReason reason, object state)
-        {
-            if (reason != EvictionReason.Replaced)
-                _items.TryRemove(key.ToString(), out var _);
+                // Invoking factory method.
+                value = await factory();
+                _items[key] = value;
+                return value.Value;
+            }
+            finally
+            {
+                _locker.Release();
+            }
         }
-
-        #endregion
     }
 }
