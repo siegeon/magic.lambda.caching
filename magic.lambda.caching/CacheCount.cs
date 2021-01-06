@@ -12,10 +12,11 @@ using magic.lambda.caching.helpers;
 namespace magic.lambda.caching
 {
     /// <summary>
-    /// [cache.list] slot returning all cache items to caller.
+    /// [cache.count] slot returning count of all cache items matching
+    /// optional filter to caller.
     /// </summary>
-    [Slot(Name = "cache.list")]
-    public class CacheList : ISlot
+    [Slot(Name = "cache.count")]
+    public class CacheCount : ISlot
     {
         readonly IMagicMemoryCache _cache;
 
@@ -23,7 +24,7 @@ namespace magic.lambda.caching
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheList(IMagicMemoryCache cache)
+        public CacheCount(IMagicMemoryCache cache)
         {
             _cache = cache;
         }
@@ -35,23 +36,17 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var offset = input.Children.FirstOrDefault(x => x.Name == "offset")?.GetEx<int>() ?? 0;
-            var limit = input.Children.FirstOrDefault(x => x.Name == "limit")?.GetEx<int>() ?? 10;
             var query = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
             input.Clear();
-            var items = string.IsNullOrEmpty(query) ?
+            var count = string.IsNullOrEmpty(query) ?
                 _cache
                     .Items()
-                    .Skip(offset)
-                    .Take(limit)
-                    .OrderBy(x => x.Key) :
+                    .Count() :
                 _cache
                     .Items()
                     .Where(x => x.Key.StartsWith(query))
-                    .Skip(offset)
-                    .Take(limit)
-                    .OrderBy(x => x.Key);
-            input.AddRange(items.Select(x => new Node(x.Key, x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)));
+                    .Count();
+            input.Value = count;
         }
     }
 }
