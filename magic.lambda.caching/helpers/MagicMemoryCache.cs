@@ -29,6 +29,10 @@ namespace magic.lambda.caching.helpers
             _locker.Wait();
             try
             {
+                // Purging all expired items.
+                PurgeExpiredItems();
+
+                // Upserting item into cache.
                 _items[key] = (Value: value, Expires: utcExpiration);
             }
             finally
@@ -43,6 +47,7 @@ namespace magic.lambda.caching.helpers
             _locker.Wait();
             try
             {
+                // Notice, we don't purge expired items on remove, only in get/modify/etc ...
                 _items.Remove(key);
             }
             finally
@@ -57,19 +62,16 @@ namespace magic.lambda.caching.helpers
             _locker.Wait();
             try
             {
-                if (_items.TryGetValue(key, out var value))
-                {
-                    if (value.Expires > DateTime.UtcNow)
-                        return value.Value;
-                    else
-                        _items.Remove(key);
-                }
+                // Purging all expired items.
+                PurgeExpiredItems();
+
+                // Retrieving item if existing from dictionary.
+                return _items.TryGetValue(key, out var value) ? value.Value : null;
             }
             finally
             {
                 _locker.Release();
             }
-            return null;
         }
 
         /// <inheritdoc/>
@@ -92,6 +94,10 @@ namespace magic.lambda.caching.helpers
             _locker.Wait();
             try
             {
+                // Purging all expired items.
+                PurgeExpiredItems();
+
+                // Returning all items, making sure we don't return expiration, but only actual content.
                 return _items
                     .Select(x => new KeyValuePair<string, object>(x.Key, x.Value.Value))
                     .ToList();
@@ -109,8 +115,11 @@ namespace magic.lambda.caching.helpers
             _locker.Wait();
             try
             {
+                // Purging all expired items.
+                PurgeExpiredItems();
+
                 // Checking cache.
-                if (_items.TryGetValue(key, out var value) && value.Expires > DateTime.UtcNow)
+                if (_items.TryGetValue(key, out var value))
                     return value.Value; // Item found in cache, and it's not expired
 
                 // Invoking factory method.
@@ -131,8 +140,11 @@ namespace magic.lambda.caching.helpers
             await _locker.WaitAsync();
             try
             {
+                // Purging all expired items.
+                PurgeExpiredItems();
+
                 // Checking cache.
-                if (_items.TryGetValue(key, out var value) && value.Expires > DateTime.UtcNow)
+                if (_items.TryGetValue(key, out var value))
                     return value.Value; // Item found in cache, and it's not expired
 
                 // Invoking factory method.
@@ -145,5 +157,24 @@ namespace magic.lambda.caching.helpers
                 _locker.Release();
             }
         }
+
+        #region [ -- Private helper methods -- ]
+
+        /*
+         * Deletes all expired cache items from dictionary.
+         *
+         * Notice, assumes caller has acquired a lock on dictionary!
+         */
+        void PurgeExpiredItems()
+        {
+            var now = DateTime.UtcNow;
+            foreach (var idx in _items.ToList())
+            {
+                if (idx.Value.Expires <= now)
+                    _items.Remove(idx.Key);
+            }
+        }
+
+        #endregion
     }
 }
