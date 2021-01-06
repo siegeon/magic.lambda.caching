@@ -3,7 +3,9 @@
  * See the enclosed LICENSE file for details.
  */
 
+using System.Linq;
 using magic.node;
+using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.helpers;
 
@@ -33,7 +35,9 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            _cache.Clear();
+            var filter = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
+            input.Clear();
+            _cache.Clear(filter);
         }
     }
 }

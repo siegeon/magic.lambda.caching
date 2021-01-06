@@ -36,15 +36,15 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var query = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
+            var filter = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
             input.Clear();
-            var count = string.IsNullOrEmpty(query) ?
+            var count = string.IsNullOrEmpty(filter) ?
                 _cache
                     .Items()
                     .Count() :
                 _cache
                     .Items()
-                    .Where(x => x.Key.StartsWith(query))
+                    .Where(x => x.Key.StartsWith(filter))
                     .Count();
             input.Value = count;
         }

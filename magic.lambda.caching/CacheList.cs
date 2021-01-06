@@ -37,9 +37,9 @@ namespace magic.lambda.caching
         {
             var offset = input.Children.FirstOrDefault(x => x.Name == "offset")?.GetEx<int>() ?? 0;
             var limit = input.Children.FirstOrDefault(x => x.Name == "limit")?.GetEx<int>() ?? 10;
-            var query = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
+            var filter = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
             input.Clear();
-            var items = string.IsNullOrEmpty(query) ?
+            var items = string.IsNullOrEmpty(filter) ?
                 _cache
                     .Items()
                     .Skip(offset)
@@ -47,7 +47,7 @@ namespace magic.lambda.caching
                     .OrderBy(x => x.Key) :
                 _cache
                     .Items()
-                    .Where(x => x.Key.StartsWith(query))
+                    .Where(x => x.Key.StartsWith(filter))
                     .Skip(offset)
                     .Take(limit)
                     .OrderBy(x => x.Key);

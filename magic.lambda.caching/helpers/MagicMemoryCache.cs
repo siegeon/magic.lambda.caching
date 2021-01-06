@@ -75,12 +75,22 @@ namespace magic.lambda.caching.helpers
         }
 
         /// <inheritdoc/>
-        public void Clear()
+        public void Clear(string filter = null)
         {
             _locker.Wait();
             try
             {
-                _items.Clear();
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    foreach (var idx in _items.Where(x => x.Key.StartsWith(filter)).ToList())
+                    {
+                        _items.Remove(idx.Key);
+                    }
+                }
+                else
+                {
+                    _items.Clear();
+                }
             }
             finally
             {

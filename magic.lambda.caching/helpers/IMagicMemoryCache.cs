@@ -39,7 +39,8 @@ namespace magic.lambda.caching.helpers
         /// <summary>
         /// Clears cache entirely.
         /// </summary>
-        void Clear();
+        /// <param name="filter">Optional filter conditiong items needs to match in order to be deleted.</param>
+        void Clear(string filter = null);
 
         /// <summary>
         /// Returns all items in cache.
