@@ -51,7 +51,12 @@ namespace magic.lambda.caching
                     .Skip(offset)
                     .Take(limit)
                     .OrderBy(x => x.Key);
-            input.AddRange(items.Select(x => new Node(x.Key, x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)));
+            input.AddRange(
+                items
+                    .Select(x => new Node(".", null, new Node[] {
+                        new Node("key", x.Key),
+                        new Node("value", x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)
+                    })));
         }
     }
 }
