@@ -14,6 +14,7 @@ using magic.node;
 using magic.signals.services;
 using magic.signals.contracts;
 using magic.node.extensions.hyperlambda;
+using magic.lambda.caching.helpers;
 
 namespace magic.lambda.caching.tests
 {
@@ -44,7 +45,7 @@ namespace magic.lambda.caching.tests
                 .Returns(() => config ? "5" : null);
             services.AddTransient((svc) => mockConfiguration.Object);
             services.AddTransient<ISignaler, Signaler>();
-            services.AddMemoryCache();
+            services.AddSingleton<IMagicMemoryCache, MagicMemoryCache>();
             var types = new SignalsProvider(InstantiateAllTypes<ISlot>(services));
             services.AddTransient<ISignalsProvider>((svc) => types);
             var provider = services.BuildServiceProvider();
