@@ -44,8 +44,7 @@ namespace magic.lambda.caching
                     .Count() :
                 _cache
                     .Items()
-                    .Where(x => x.Key.StartsWith(filter))
-                    .Count();
+                    .Count(x => x.Key.StartsWith(filter));
             input.Value = count;
         }
     }
