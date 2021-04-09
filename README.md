@@ -132,6 +132,10 @@ no race conditions can be experienced. However, _it is a memory based cache_. If
 caching features, going beyond what a basic memory based cache implementation can achieve, you might
 want to implement Redis or something similar as your own custom C# extension.
 
+## Project website
+
+The source code for this repository can be found at [github.com/polterguy/magic.lambda.caching](https://github.com/polterguy/magic.lambda.caching), and you can provide feedback, provide bug reports, etc at the same place.
+
 ## Quality gates
 
 - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=polterguy_magic.lambda.caching&metric=alert_status)](https://sonarcloud.io/dashboard?id=polterguy_magic.lambda.caching)
