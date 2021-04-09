@@ -17,7 +17,8 @@ namespace magic.lambda.caching.tests
         [Fact]
         public void CacheSetGet()
         {
-            var lambda = Common.Evaluate(@"cache.set:foo
+            var lambda = Common.Evaluate(@"
+cache.set:foo
    expiration:5
    value:howdy world
 cache.get:foo");
@@ -27,7 +28,8 @@ cache.get:foo");
         [Fact]
         public void CacheSetNullifyGet()
         {
-            var lambda = Common.Evaluate(@"cache.set:foo
+            var lambda = Common.Evaluate(@"
+cache.set:foo
    expiration:5
    value:howdy world
 cache.set:foo
@@ -38,7 +40,8 @@ cache.get:foo");
         [Fact]
         public void CacheSetGetConfig()
         {
-            var lambda = Common.Evaluate(@"cache.set:foo
+            var lambda = Common.Evaluate(@"
+cache.set:foo
    value:howdy world
 cache.get:foo");
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
@@ -47,16 +50,18 @@ cache.get:foo");
         [Fact]
         public void CacheSetGetNoConfig()
         {
-            var lambda = Common.Evaluate(@"cache.set:foo
+            var lambda = Common.Evaluate(@"
+cache.set:foo
    value:howdy world
 cache.get:foo", false);
             Assert.Equal("howdy world", lambda.Children.Skip(1).First().Value);
         }
 
         [Fact]
-        public void CacheSetAbsoluteExpiration()
+        public void CacheSetExplicitExpiration()
         {
-            var lambda = Common.Evaluate(@"cache.set:foo
+            var lambda = Common.Evaluate(@"
+cache.set:foo
    expiration:5
    value:howdy world
 cache.get:foo");
@@ -73,7 +78,8 @@ cache.get:foo");
         [Fact]
         public void CacheTryGet()
         {
-            var lambda = Common.Evaluate(@"cache.try-get:foo
+            var lambda = Common.Evaluate(@"
+cache.try-get:foo
    .lambda
       return:Howdy World
 cache.get:foo");
@@ -84,7 +90,8 @@ cache.get:foo");
         [Fact]
         public void CacheTryGetNoConfig()
         {
-            var lambda = Common.Evaluate(@"cache.try-get:foo
+            var lambda = Common.Evaluate(@"
+cache.try-get:foo
    .lambda
       return:Howdy World
 cache.get:foo", false);
@@ -106,7 +113,8 @@ cache.get:foo");
         [Fact]
         public void CacheTryGetNullKey()
         {
-            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.try-get
+            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"
+cache.try-get
    .lambda
       return:Howdy World"));
         }
@@ -120,7 +128,8 @@ cache.get:foo");
         [Fact]
         public void CacheTryGetNode()
         {
-            var lambda = Common.Evaluate(@"cache.try-get:foo
+            var lambda = Common.Evaluate(@"
+cache.try-get:foo
    .lambda
       return
          foo:bar
@@ -135,7 +144,8 @@ cache.get:foo");
         [Fact]
         public async Task CacheTryGetAsync()
         {
-            var lambda = await Common.EvaluateAsync(@"cache.try-get:foo
+            var lambda = await Common.EvaluateAsync(@"
+cache.try-get:foo
    .lambda
       return:Howdy World
 cache.get:foo");
@@ -146,7 +156,8 @@ cache.get:foo");
         [Fact]
         public async Task CacheTryGetNodeAsync()
         {
-            var lambda = await Common.EvaluateAsync(@"cache.try-get:foo
+            var lambda = await Common.EvaluateAsync(@"
+cache.try-get:foo
    .lambda
       return
          foo:bar

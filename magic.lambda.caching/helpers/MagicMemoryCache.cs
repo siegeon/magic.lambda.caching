@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -17,17 +16,17 @@ namespace magic.lambda.caching.helpers
     /// </summary>
     public class MagicMemoryCache : IMagicMemoryCache
     {
-        // Used to synchronize access to dictionary.
-        readonly SemaphoreSlim _locker = new SemaphoreSlim(1);
-
         // Actual items in cache.
         readonly Dictionary<string, (object Value, DateTime Expires)> _items = new Dictionary<string, (object, DateTime)>();
+
+        // Common lock to access shared resource(s).
+        readonly static object _lock = new object();
 
         /// <inheritdoc/>
         public void Upsert(string key, object value, DateTime utcExpiration)
         {
-            _locker.Wait();
-            try
+            // Synchronizing access to shared resource.
+            lock (_lock)
             {
                 // Purging all expired items.
                 PurgeExpiredItems();
@@ -35,32 +34,24 @@ namespace magic.lambda.caching.helpers
                 // Upserting item into cache.
                 _items[key] = (Value: value, Expires: utcExpiration);
             }
-            finally
-            {
-                _locker.Release();
-            }
         }
 
         /// <inheritdoc/>
         public void Remove(string key)
         {
-            _locker.Wait();
-            try
+            // Synchronizing access to shared resource.
+            lock (_lock)
             {
                 // Notice, we don't purge expired items on remove, only in get/modify/etc ...
                 _items.Remove(key);
-            }
-            finally
-            {
-                _locker.Release();
             }
         }
 
         /// <inheritdoc/>
         public object Get(string key)
         {
-            _locker.Wait();
-            try
+            // Synchronizing access to shared resource.
+            lock (_lock)
             {
                 // Purging all expired items.
                 PurgeExpiredItems();
@@ -68,17 +59,13 @@ namespace magic.lambda.caching.helpers
                 // Retrieving item if existing from dictionary.
                 return _items.TryGetValue(key, out var value) ? value.Value : null;
             }
-            finally
-            {
-                _locker.Release();
-            }
         }
 
         /// <inheritdoc/>
         public void Clear(string filter = null)
         {
-            _locker.Wait();
-            try
+            // Synchronizing access to shared resource.
+            lock (_lock)
             {
                 if (!string.IsNullOrEmpty(filter))
                 {
@@ -92,17 +79,13 @@ namespace magic.lambda.caching.helpers
                     _items.Clear();
                 }
             }
-            finally
-            {
-                _locker.Release();
-            }
         }
 
         /// <inheritdoc/>
         public IEnumerable<KeyValuePair<string, object>> Items()
         {
-            _locker.Wait();
-            try
+            // Synchronizing access to shared resource.
+            lock (_lock)
             {
                 // Purging all expired items.
                 PurgeExpiredItems();
@@ -112,59 +95,87 @@ namespace magic.lambda.caching.helpers
                     .Select(x => new KeyValuePair<string, object>(x.Key, x.Value.Value))
                     .ToList();
             }
-            finally
-            {
-                _locker.Release();
-            }
         }
 
         /// <inheritdoc/>
         public object GetOrCreate(string key, Func<(object, DateTime)> factory)
         {
-            // Checking if item exists in cache.
-            _locker.Wait();
-            try
+            /*
+             * Notice, to avoid locking entire cache as we invoke factory lambda, we
+             * use MagicLocker here, which will only lock on the specified key.
+             */
+            using (var locker = new MagicLocker(key))
             {
-                // Purging all expired items.
-                PurgeExpiredItems();
+                // Synchronizing access to shared resource. ORDER COUNTS!
+                locker.Lock();
+                lock (_lock)
+                {
+                    // Purging all expired items.
+                    PurgeExpiredItems();
 
-                // Checking cache.
-                if (_items.TryGetValue(key, out var value))
-                    return value.Value; // Item found in cache, and it's not expired
+                    // Checking cache.
+                    if (_items.TryGetValue(key, out var value))
+                        return value.Value; // Item found in cache, and it's not expired
+                }
 
-                // Invoking factory method.
-                value = factory();
-                _items[key] = value;
-                return value.Value;
-            }
-            finally
-            {
-                _locker.Release();
+                /*
+                 * Invoking factory method.
+                 *
+                 * Notice, here we don't lock the global locker, but only keep the
+                 * MagicLocker, which creates a semaphore on a "per key" basis.
+                 *
+                 * This is done to avoid locking the whole cache as we invoke
+                 * the factory method, which might be expensive to execute.
+                 */
+                var newValue = factory();
+
+                // Synchronizing access to shared resource.
+                lock (_lock)
+                {
+                    _items[key] = newValue;
+                    return newValue.Item1;
+                }
             }
         }
 
         /// <inheritdoc/>
         public async Task<object> GetOrCreateAsync(string key, Func<Task<(object, DateTime)>> factory)
         {
-            // Checking if item exists in cache.
-            await _locker.WaitAsync();
-            try
+            /*
+             * Notice, to avoid locking entire cache as we invoke factory lambda, we
+             * use MagicLocker here, which will only lock on the specified key.
+             */
+            using (var locker = new MagicLocker(key))
             {
-                // Purging all expired items.
-                PurgeExpiredItems();
+                // Synchronizing access to shared resource. ORDER COUNTS!
+                await locker.LockAsync();
+                lock (_lock)
+                {
+                    // Purging all expired items.
+                    PurgeExpiredItems();
 
-                // Checking cache.
-                if (_items.TryGetValue(key, out var value))
-                    return value.Value; // Item found in cache, and it's not expired
+                    // Checking cache.
+                    if (_items.TryGetValue(key, out var value))
+                        return value.Value; // Item found in cache, and it's not expired
+                }
 
-                // Invoking factory method.
-                value = await factory();
-                _items[key] = value;
-                return value.Value;
-            }
-            finally
-            {
-                _locker.Release();
+                /*
+                 * Invoking factory method.
+                 *
+                 * Notice, here we don't lock the global locker, but only keep the
+                 * MagicLocker, which creates a semaphore on a "per key" basis.
+                 *
+                 * This is done to avoid locking the whole cache as we invoke
+                 * the factory method, which might be expensive to execute.
+                 */
+                var newValue = await factory();
+
+                // Synchronizing access to shared resource.
+                lock (_lock)
+                {
+                    _items[key] = newValue;
+                    return newValue.Item1;
+                }
             }
         }
 

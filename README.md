@@ -8,6 +8,7 @@ Cache helper slots for Magic, more specifically the following slots.
 * __[cache.try-get]__ - Attempts to retrieve an item from cache, and if not existing, invokes __[.lambda]__ to retrieve item, and saves it to cache, before returning it to the caller.
 * __[cache.clear]__ - Completely empties cache.
 * __[cache.list]__ - Lists all items in cache.
+* __[cache.count]__ - Returns the number of cache items in total.
 
 All of the above slots requires a key as its value.
 
@@ -15,19 +16,12 @@ All of the above slots requires a key as its value.
 
 Invoke this slot to save an item to the cache. The slot takes 3 properties, which are as follows.
 
-* __[value]__ - The item to actually save to the cache. If you pass in null, any existing cache items will be removed.
+* Value of node, being the _key_ for your cache item.
+* __[value]__ - The item to actually save to the cache. If you pass in null, any existing cache items matching your key will be removed.
 * __[expiration]__ - Number of seconds to keep the item in the cache.
 
-Absolute expiration implies that the item will be kept in the cache, for x number of seconds, before
-evicted from the cache. Sliding expiration implies that if the cached item is accessed more frequently
-than the sliding expiration interval, the item will never expire, until it's no longer accessed for
-its **[expiration]** number of seconds. To remove a cached item, invoke this slot with a null **[value]**,
-or no **[value]** node at all.
-
 Below is an example of a piece of Hyperlambda that simply saves the value of _"Howdy world"_ to your
-cache, using _"cache-item-key"_ as the key for the cache item. Notice, this example uses sliding expiration,
-implying the item will _never_ be evicted from your cache, as long as it's accessed more frequently than
-every 5 seconds.
+cache, using _"cache-item-key"_ as the key for the cache item.
 
 ```
 cache.set:cache-item-key
