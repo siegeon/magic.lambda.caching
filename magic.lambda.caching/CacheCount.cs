@@ -12,7 +12,7 @@ using magic.lambda.caching.helpers;
 namespace magic.lambda.caching
 {
     /// <summary>
-    /// [cache.count] slot returning count of all cache items matching
+    /// [cache.count] slot returning the number of cacheds items matching
     /// optional filter to caller.
     /// </summary>
     [Slot(Name = "cache.count")]

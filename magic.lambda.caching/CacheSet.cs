@@ -40,7 +40,7 @@ namespace magic.lambda.caching
                 throw new ArgumentException("[cache.set] must be given a key");
             var val = input.Children.FirstOrDefault(x => x.Name == "value")?.Value;
 
-            // Checking if value is null,l at which point we simply remove cached item.
+            // Checking if value is null, at which point we simply remove cached item.
             if (val == null)
             {
                 _cache.Remove(key);

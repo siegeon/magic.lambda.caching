@@ -14,7 +14,9 @@ using magic.lambda.caching.helpers;
 namespace magic.lambda.caching
 {
     /// <summary>
-    /// [cache.try-get] slot saving its first child node's value to the memory cache.
+    /// [cache.try-get] slot for checking if an item exists in the cache, and if so,
+    /// returning it as is - If item doesn't exists, the slot will invoke your [.lambda]
+    /// callback, to create item, store item into cache, and return the item to the caller.
     /// </summary>
     [Slot(Name = "cache.try-get")]
     public class CacheTryGet : ISlotAsync, ISlot

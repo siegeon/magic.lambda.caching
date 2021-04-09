@@ -12,7 +12,8 @@ using magic.lambda.caching.helpers;
 namespace magic.lambda.caching
 {
     /// <summary>
-    /// [cache.clear] slot clearing memory cache entirely.
+    /// [cache.clear] slot clearing memory cache entirely, or optionally taking a filter
+    /// declaring which items to clear.
     /// </summary>
     [Slot(Name = "cache.clear")]
     public class CacheClear : ISlot
