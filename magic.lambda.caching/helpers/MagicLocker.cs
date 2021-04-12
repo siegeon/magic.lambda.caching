@@ -18,7 +18,7 @@ namespace magic.lambda.caching.helpers
      *
      * Make sure you use the "using" pattern as you instantiate the class.
      */
-    internal class MagicLocker : IDisposable
+    internal sealed class MagicLocker : IDisposable
     {
         static readonly ConcurrentDictionary<string, SemaphoreSlim> _lockers = new ConcurrentDictionary<string, SemaphoreSlim>();
         readonly SemaphoreSlim _semaphore;
