@@ -102,7 +102,8 @@ cache.get:foo", false);
         [Fact]
         public void CacheTryGetExplicitExpiration()
         {
-            var lambda = Common.Evaluate(@"cache.try-get:foo
+            var lambda = Common.Evaluate(@"
+cache.try-get:foo
    expiration:5
    .lambda
       return:Howdy World
@@ -123,6 +124,39 @@ cache.try-get
         public void CacheTryGetNullLambda()
         {
             Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.try-get:foo"));
+        }
+
+        [Fact]
+        public void CacheSetClearGet()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo
+   value:howdy world
+cache.clear
+cache.get:foo");
+            Assert.Null(lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetCount()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo
+   value:howdy world
+cache.count");
+            Assert.Equal(1, lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetList()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo
+   value:howdy world
+cache.list");
+            Assert.Single(lambda.Children.Skip(1).First().Children);
+            Assert.Equal("foo", lambda.Children.Skip(1).First().Children.First().Children.First(x => x.Name == "key").Value);
+            Assert.Equal("howdy world", lambda.Children.Skip(1).First().Children.First().Children.First(x => x.Name == "value").Value);
         }
 
         [Fact]
