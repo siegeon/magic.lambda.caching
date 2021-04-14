@@ -26,6 +26,17 @@ cache.get:foo");
         }
 
         [Fact]
+        public void CacheSetGetExpressionValue()
+        {
+            var lambda = Common.Evaluate(@"
+.val:int:5
+cache.set:foo
+   value:x:@.val
+cache.get:foo");
+            Assert.Equal(5, lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
         public void CacheSetNullifyGet()
         {
             var lambda = Common.Evaluate(@"
