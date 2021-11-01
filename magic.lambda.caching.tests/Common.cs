@@ -23,7 +23,7 @@ namespace magic.lambda.caching.tests
         static public Node Evaluate(string hl, bool config = true)
         {
             var signaler = Initialize(config);
-            var lambda = new Parser(hl).Lambda();
+            var lambda = HyperlambdaParser.Parse(hl);
             signaler.Signal("eval", lambda);
             return lambda;
         }
@@ -31,7 +31,7 @@ namespace magic.lambda.caching.tests
         static async public Task<Node> EvaluateAsync(string hl)
         {
             var signaler = Initialize();
-            var lambda = new Parser(hl).Lambda();
+            var lambda = HyperlambdaParser.Parse(hl);
             await signaler.SignalAsync("eval", lambda);
             return lambda;
         }
