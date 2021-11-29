@@ -81,7 +81,7 @@ cache.get:foo");
         [Fact]
         public void CacheSetNullKey()
         {
-            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.set
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"cache.set
    value:howdy world"));
         }
 
@@ -124,7 +124,7 @@ cache.get:foo");
         [Fact]
         public void CacheTryGetNullKey()
         {
-            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
 cache.try-get
    .lambda
       return:Howdy World"));
@@ -133,7 +133,7 @@ cache.try-get
         [Fact]
         public void CacheTryGetNullLambda()
         {
-            Assert.Throws<ArgumentException>(() => Common.Evaluate(@"cache.try-get:foo"));
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"cache.try-get:foo"));
         }
 
         [Fact]

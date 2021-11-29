@@ -81,13 +81,13 @@ namespace magic.lambda.caching
         (string Key, Node Lambda, DateTime UtcExpires) GetArgs(Node input)
         {
             var key = input.GetEx<string>() ??
-                throw new ArgumentException("[cache.try-get] must be given a key");
+                throw new HyperlambdaException("[cache.try-get] must be given a key");
 
             var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ??
                 5;
 
             var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda") ?? 
-                throw new ArgumentException("[cache.try-get] must have a [.lambda]");
+                throw new HyperlambdaException("[cache.try-get] must have a [.lambda]");
 
             return (key, lambda, DateTime.UtcNow.AddSeconds(expiration));
         }
