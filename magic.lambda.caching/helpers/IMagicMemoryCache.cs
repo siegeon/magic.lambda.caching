@@ -44,8 +44,9 @@ namespace magic.lambda.caching.helpers
         /// <summary>
         /// Returns all items in cache.
         /// </summary>
+        /// <param name="filter">Optional filter conditiong items needs to match in order to be returned.</param>
         /// <returns>Enumerable of all items currently stored in cache.</returns>
-        IEnumerable<KeyValuePair<string, object>> Items();
+        IEnumerable<KeyValuePair<string, object>> Items(string filter = null);
 
         /// <summary>
         /// Retrieves a single item from cache, and if not existing, creates the item,

@@ -4,6 +4,7 @@
 
 using System.Linq;
 using magic.node;
+using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.helpers;
@@ -18,14 +19,17 @@ namespace magic.lambda.caching
     public class CacheCount : ISlot
     {
         readonly IMagicMemoryCache _cache;
+        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheCount(IMagicMemoryCache cache)
+        /// <param name="rootResolver">Needed to be able to namespace cache items.</param>
+        public CacheCount(IMagicMemoryCache cache, IRootResolver rootResolver)
         {
             _cache = cache;
+            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -35,16 +39,14 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var filter = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
+            var filter = _rootResolver.RootFolder +
+                input
+                    .Children
+                    .FirstOrDefault(x => x.Name == "filter")?
+                    .GetEx<string>();
             input.Clear();
-            var count = string.IsNullOrEmpty(filter) ?
-                _cache
-                    .Items()
-                    .Count() :
-                _cache
-                    .Items()
-                    .Count(x => x.Key.StartsWith(filter));
-            input.Value = count;
+            var count = _cache.Items(filter);
+            input.Value = count.Count();
         }
     }
 }

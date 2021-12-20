@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using magic.node;
+using magic.node.contracts;
 using magic.signals.services;
 using magic.signals.contracts;
 using magic.node.extensions.hyperlambda;
@@ -19,6 +20,21 @@ namespace magic.lambda.caching.tests
 {
     public static class Common
     {
+        private class RootResolver : IRootResolver
+        {
+            public string RootFolder => AppDomain.CurrentDomain.BaseDirectory;
+
+            public string AbsolutePath(string path)
+            {
+                return RootFolder + path.TrimStart(new char[] { '/', '\\' });
+            }
+
+            public string RelativePath(string path)
+            {
+                return path.Substring(RootFolder.Length - 1);
+            }
+        }
+
         static public Node Evaluate(string hl, bool config = true)
         {
             var signaler = Initialize(config);
@@ -45,6 +61,7 @@ namespace magic.lambda.caching.tests
             services.AddTransient((svc) => mockConfiguration.Object);
             services.AddTransient<ISignaler, Signaler>();
             services.AddSingleton<IMagicMemoryCache, MagicMemoryCache>();
+            services.AddTransient<IRootResolver, RootResolver>();
             var types = new SignalsProvider(InstantiateAllTypes<ISlot>(services));
             services.AddTransient<ISignalsProvider>((svc) => types);
             var provider = services.BuildServiceProvider();

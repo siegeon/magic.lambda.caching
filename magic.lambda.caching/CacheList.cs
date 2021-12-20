@@ -4,6 +4,7 @@
 
 using System.Linq;
 using magic.node;
+using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.helpers;
@@ -17,14 +18,17 @@ namespace magic.lambda.caching
     public class CacheList : ISlot
     {
         readonly IMagicMemoryCache _cache;
+        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheList(IMagicMemoryCache cache)
+        /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
+        public CacheList(IMagicMemoryCache cache, IRootResolver rootResolver)
         {
             _cache = cache;
+            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -34,26 +38,33 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var offset = input.Children.FirstOrDefault(x => x.Name == "offset")?.GetEx<int>() ?? 0;
-            var limit = input.Children.FirstOrDefault(x => x.Name == "limit")?.GetEx<int>() ?? 10;
-            var filter = input.Children.FirstOrDefault(x => x.Name == "filter")?.GetEx<string>();
+            var offset = input
+                .Children
+                .FirstOrDefault(x => x.Name == "offset")?
+                .GetEx<int>() ?? 0;
+
+            var limit = input
+                .Children
+                .FirstOrDefault(x => x.Name == "limit")?
+                .GetEx<int>() ?? 10;
+
+            var filter = _rootResolver.RootFolder +
+                input
+                    .Children
+                    .FirstOrDefault(x => x.Name == "filter")?
+                    .GetEx<string>();
+
             input.Clear();
-            var items = string.IsNullOrEmpty(filter) ?
-                _cache
-                    .Items()
-                    .Skip(offset)
-                    .Take(limit)
-                    .OrderBy(x => x.Key) :
-                _cache
-                    .Items()
-                    .Where(x => x.Key.StartsWith(filter))
-                    .Skip(offset)
-                    .Take(limit)
-                    .OrderBy(x => x.Key);
+            var items = _cache
+                .Items(filter)
+                .Skip(offset)
+                .Take(limit)
+                .OrderBy(x => x.Key);
+
             input.AddRange(
                 items
                     .Select(x => new Node(".", null, new Node[] {
-                        new Node("key", x.Key),
+                        new Node("key", x.Key.Substring(_rootResolver.RootFolder.Length)),
                         new Node("value", x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)
                     })));
         }

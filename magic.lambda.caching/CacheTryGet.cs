@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using magic.node;
+using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.helpers;
@@ -21,14 +22,17 @@ namespace magic.lambda.caching
     public class CacheTryGet : ISlotAsync, ISlot
     {
         readonly IMagicMemoryCache _cache;
+        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheTryGet(IMagicMemoryCache cache)
+        /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
+        public CacheTryGet(IMagicMemoryCache cache, IRootResolver rootResolver)
         {
             _cache = cache;
+            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -80,13 +84,16 @@ namespace magic.lambda.caching
          */
         (string Key, Node Lambda, DateTime UtcExpires) GetArgs(Node input)
         {
-            var key = input.GetEx<string>() ??
-                throw new HyperlambdaException("[cache.try-get] must be given a key");
+            var key = _rootResolver.RootFolder +
+                (input.GetEx<string>() ?? throw new HyperlambdaException("[cache.try-get] must be given a key"));
 
-            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ??
-                5;
+            var expiration = input
+                .Children
+                .FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ?? 5;
 
-            var lambda = input.Children.FirstOrDefault(x => x.Name == ".lambda") ?? 
+            var lambda = input
+                .Children
+                .FirstOrDefault(x => x.Name == ".lambda") ?? 
                 throw new HyperlambdaException("[cache.try-get] must have a [.lambda]");
 
             return (key, lambda, DateTime.UtcNow.AddSeconds(expiration));

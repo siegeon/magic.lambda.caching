@@ -81,13 +81,20 @@ namespace magic.lambda.caching.helpers
         }
 
         /// <inheritdoc/>
-        public IEnumerable<KeyValuePair<string, object>> Items()
+        public IEnumerable<KeyValuePair<string, object>> Items(string filter = null)
         {
             // Synchronizing access to shared resource.
             lock (_lock)
             {
                 // Purging all expired items.
                 PurgeExpiredItems();
+
+                // Returning only items matching filter condition.
+                if (!string.IsNullOrEmpty(filter))
+                    return _items
+                        .Where(x => x.Key.StartsWith(filter))
+                        .Select(x => new KeyValuePair<string, object>(x.Key, x.Value.Value))
+                        .ToList();
 
                 // Returning all items, making sure we don't return expiration, but only actual content.
                 return _items

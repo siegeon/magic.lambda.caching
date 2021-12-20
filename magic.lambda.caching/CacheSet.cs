@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using magic.node;
+using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.helpers;
@@ -18,14 +19,17 @@ namespace magic.lambda.caching
     public class CacheSet : ISlot
     {
         readonly IMagicMemoryCache _cache;
+        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        public CacheSet(IMagicMemoryCache cache)
+        /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
+        public CacheSet(IMagicMemoryCache cache, IRootResolver rootResolver)
         {
             _cache = cache;
+            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -35,8 +39,13 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var key = input.GetEx<string>() ?? throw new HyperlambdaException("[cache.set] must be given a key");
-            var val = input.Children.FirstOrDefault(x => x.Name == "value")?.GetEx<object>();
+            var key = _rootResolver.RootFolder +
+                (input.GetEx<string>() ?? throw new HyperlambdaException("[cache.set] must be given a key"));
+
+            var val = input
+                .Children
+                .FirstOrDefault(x => x.Name == "value")?
+                .GetEx<object>();
 
             // Checking if value is null, at which point we simply remove cached item.
             if (val == null)
@@ -46,7 +55,11 @@ namespace magic.lambda.caching
             }
 
             // Caller tries to actually save an object to cache.
-            var expiration = input.Children.FirstOrDefault(x => x.Name == "expiration")?.GetEx<long>() ?? 5;
+            var expiration = input
+                .Children
+                .FirstOrDefault(x => x.Name == "expiration")?
+                .GetEx<long>() ?? 5;
+
             _cache.Upsert(key, val, DateTime.UtcNow.AddSeconds(expiration));
         }
     }
