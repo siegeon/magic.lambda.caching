@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using magic.node;
-using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.contracts;
@@ -19,17 +18,14 @@ namespace magic.lambda.caching
     public class CacheSet : ISlot
     {
         readonly IMagicCache _cache;
-        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
-        public CacheSet(IMagicCache cache, IRootResolver rootResolver)
+        public CacheSet(IMagicCache cache)
         {
             _cache = cache;
-            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -39,8 +35,7 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var key = _rootResolver.RootFolder +
-                (input.GetEx<string>() ?? throw new HyperlambdaException("[cache.set] must be given a key"));
+            var key = input.GetEx<string>() ?? throw new HyperlambdaException("[cache.set] must be given a key");
 
             var val = input
                 .Children
@@ -54,7 +49,7 @@ namespace magic.lambda.caching
                 return;
             }
 
-            // Caller tries to actually save an object to cache.
+            // Caller wants to actually save an object to cache.
             var expiration = input
                 .Children
                 .FirstOrDefault(x => x.Name == "expiration")?

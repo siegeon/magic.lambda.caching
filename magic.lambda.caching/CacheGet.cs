@@ -3,7 +3,6 @@
  */
 
 using magic.node;
-using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.contracts;
@@ -17,17 +16,14 @@ namespace magic.lambda.caching
     public class CacheGet : ISlot
     {
         readonly IMagicCache _cache;
-        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        /// <param name="rootResolver">Needed to be able to namespace cache items.</param>
-        public CacheGet(IMagicCache cache, IRootResolver rootResolver)
+        public CacheGet(IMagicCache cache)
         {
             _cache = cache;
-            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -37,8 +33,7 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var key = _rootResolver.RootFolder + input.GetEx<string>();
-            input.Value = _cache.Get(key);
+            input.Value = _cache.Get(input.GetEx<string>());
         }
     }
 }

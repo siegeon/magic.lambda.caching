@@ -4,7 +4,6 @@
 
 using System.Linq;
 using magic.node;
-using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.contracts;
@@ -18,17 +17,14 @@ namespace magic.lambda.caching
     public class CacheList : ISlot
     {
         readonly IMagicCache _cache;
-        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
-        public CacheList(IMagicCache cache, IRootResolver rootResolver)
+        public CacheList(IMagicCache cache)
         {
             _cache = cache;
-            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -48,15 +44,15 @@ namespace magic.lambda.caching
                 .FirstOrDefault(x => x.Name == "limit")?
                 .GetEx<int>() ?? 10;
 
-            var filter = _rootResolver.RootFolder +
-                input
-                    .Children
-                    .FirstOrDefault(x => x.Name == "filter")?
-                    .GetEx<string>();
+            var filter = input
+                .Children
+                .FirstOrDefault(x => x.Name == "filter")?
+                .GetEx<string>();
 
             input.Clear();
+
             var items = _cache
-                .Items(filter)
+                .Items(filter, false)
                 .Skip(offset)
                 .Take(limit)
                 .OrderBy(x => x.Key);
@@ -64,7 +60,7 @@ namespace magic.lambda.caching
             input.AddRange(
                 items
                     .Select(x => new Node(".", null, new Node[] {
-                        new Node("key", x.Key.Substring(_rootResolver.RootFolder.Length)),
+                        new Node("key", x.Key),
                         new Node("value", x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)
                     })));
         }

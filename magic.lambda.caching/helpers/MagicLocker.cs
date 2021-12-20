@@ -15,7 +15,8 @@ namespace magic.lambda.caching.helpers
      * This class will lock on the specified key passed into the CTOR of the class,
      * and release the semaphore/lock as the instance is disposed.
      *
-     * Make sure you use the "using" pattern as you instantiate the class.
+     * Make sure you use the "using" pattern as you instantiate the class since the lock is
+     * released as the object is disposed.
      */
     internal sealed class MagicLocker : IDisposable
     {

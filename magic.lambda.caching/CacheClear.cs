@@ -4,7 +4,6 @@
 
 using System.Linq;
 using magic.node;
-using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.contracts;
@@ -19,17 +18,14 @@ namespace magic.lambda.caching
     public class CacheClear : ISlot
     {
         readonly IMagicCache _cache;
-        readonly IRootResolver _rootResolver;
-
+ 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        /// <param name="rootResolver">Needed to be able to namespace cache items.</param>
-        public CacheClear(IMagicCache cache, IRootResolver rootResolver)
+        public CacheClear(IMagicCache cache)
         {
             _cache = cache;
-            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -39,11 +35,10 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var filter = _rootResolver.RootFolder +
-                input
-                    .Children
-                    .FirstOrDefault(x => x.Name == "filter")?
-                    .GetEx<string>();
+            var filter = input
+                .Children
+                .FirstOrDefault(x => x.Name == "filter")?
+                .GetEx<string>();
             input.Clear();
             _cache.Clear(filter);
         }

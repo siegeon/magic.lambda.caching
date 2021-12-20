@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using magic.node;
-using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
 using magic.lambda.caching.contracts;
@@ -22,17 +21,14 @@ namespace magic.lambda.caching
     public class CacheTryGet : ISlotAsync, ISlot
     {
         readonly IMagicCache _cache;
-        readonly IRootResolver _rootResolver;
 
         /// <summary>
         /// Creates an instance of your type.
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
-        /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
-        public CacheTryGet(IMagicCache cache, IRootResolver rootResolver)
+        public CacheTryGet(IMagicCache cache)
         {
             _cache = cache;
-            _rootResolver = rootResolver;
         }
 
         /// <summary>
@@ -84,8 +80,7 @@ namespace magic.lambda.caching
          */
         (string Key, Node Lambda, DateTime UtcExpires) GetArgs(Node input)
         {
-            var key = _rootResolver.RootFolder +
-                (input.GetEx<string>() ?? throw new HyperlambdaException("[cache.try-get] must be given a key"));
+            var key = input.GetEx<string>() ?? throw new HyperlambdaException("[cache.try-get] must be given a key");
 
             var expiration = input
                 .Children

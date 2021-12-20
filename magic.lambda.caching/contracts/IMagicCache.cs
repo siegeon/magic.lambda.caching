@@ -9,44 +9,61 @@ using System.Collections.Generic;
 namespace magic.lambda.caching.contracts
 {
     /// <summary>
-    /// Magic cache extension interface allowing developer to query keys,
-    /// and clear (all) items in one go.
+    /// Magic cache contract allowing developer to query keys,
+    /// and clear (all) items in one go, in addition to providing atomic inserts,
+    /// get, remove and add methods.
     /// </summary>
     public interface IMagicCache
     {
         /// <summary>
-        /// Creates a new entry.
+        /// Creates a new cache entry.
         /// </summary>
         /// <param name="key">What key to use for item.</param>
         /// <param name="value">The actual value of the item.</param>
         /// <param name="utcExpiration">UTC date and time of when item expires.</param>
-        void Upsert(string key, object value, DateTime utcExpiration);
+        /// <param name="hidden">If true, item will be hidden.</param>
+        void Upsert(string key, object value, DateTime utcExpiration, bool hidden = false);
 
         /// <summary>
-        /// Removes a single entry.
+        /// Removes the specified cache entry with the specified key.
         /// </summary>
         /// <param name="key">Key of item to remove.</param>
-        void Remove(string key);
+        /// <param name="hidden">If true, item will be assumed to be hidden.</param>
+        void Remove(string key, bool hidden = false);
 
         /// <summary>
-        /// Returns a single item.
+        /// Returns a single cache entry.
         /// </summary>
-        /// <param name="key">Key of item to remove.</param>
-        /// <returns>Content of item.</returns>
-        object Get(string key);
+        /// <param name="key">Key of item to get.</param>
+        /// <param name="hidden">If true, item will be stored hidden.</param>
+        /// <returns>Actual item.</returns>
+        object Get(string key, bool hidden = false);
 
         /// <summary>
-        /// Clears cache entirely.
+        /// Clears cache entirely, optionally only items matching the specified filter.
         /// </summary>
-        /// <param name="filter">Optional filter conditiong items needs to match in order to be deleted.</param>
-        void Clear(string filter = null);
+        /// <param name="filter">Optional filter conditiong items needs to match in order to be removed.</param>
+        /// <param name="hidden">If true, only hidden items will be removed.</param>
+        void Clear(string filter = null, bool hidden = false);
 
         /// <summary>
-        /// Returns all items in cache.
+        /// Returns all items in cache, optionally only items matching the specified filter.
         /// </summary>
         /// <param name="filter">Optional filter conditiong items needs to match in order to be returned.</param>
+        /// <param name="hidden">If true, only hidden items will be returned.</param>
         /// <returns>Enumerable of all items currently stored in cache.</returns>
-        IEnumerable<KeyValuePair<string, object>> Items(string filter = null);
+        IEnumerable<KeyValuePair<string, object>> Items(string filter = null, bool hidden = false);
+
+        /// <summary>
+        /// Retrieves a single item from cache, and if not existing, creates the item,
+        /// adds it to the cache, and returns to caller. Operation is atomic, implying only
+        /// one thread will access the create factory function.
+        /// </summary>
+        /// <param name="key">Key of item to create or retrieve.</param>
+        /// <param name="factory">Factory method to invoke if item cannot be found in cache.</param>
+        /// <param name="hidden">If true, item will be stored as hidden.</param>
+        /// <returns>Object as created and/or found in cache.</returns>
+        object GetOrCreate(string key, Func<(object, DateTime)> factory, bool hidden = false);
 
         /// <summary>
         /// Retrieves a single item from cache, and if not existing, creates the item,
@@ -54,16 +71,8 @@ namespace magic.lambda.caching.contracts
         /// </summary>
         /// <param name="key">Key of item to create or retrieve.</param>
         /// <param name="factory">Factory method to invoke if item cannot be found in cache.</param>
+        /// <param name="hidden">If true, item will be stored as hidden.</param>
         /// <returns>Object as created and/or found in cache.</returns>
-        object GetOrCreate(string key, Func<(object, DateTime)> factory);
-
-        /// <summary>
-        /// Retrieves a single item from cache, and if not existing, creates the item,
-        /// adds it to the cache, and returns to caller.
-        /// </summary>
-        /// <param name="key">Key of item to create or retrieve.</param>
-        /// <param name="factory">Factory method to invoke if item cannot be found in cache.</param>
-        /// <returns>Object as created and/or found in cache.</returns>
-        Task<object> GetOrCreateAsync(string key, Func<Task<(object, DateTime)>> factory);
+        Task<object> GetOrCreateAsync(string key, Func<Task<(object, DateTime)>> factory, bool hidden = false);
     }
 }
