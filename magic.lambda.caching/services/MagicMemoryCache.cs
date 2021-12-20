@@ -6,14 +6,16 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using magic.lambda.caching.helpers;
+using magic.lambda.caching.contracts;
 
-namespace magic.lambda.caching.helpers
+namespace magic.lambda.caching.services
 {
     /// <summary>
     /// Memory cache implementation class allowing developer to query keys,
     /// and clear (all) items in one go.
     /// </summary>
-    public class MagicMemoryCache : IMagicMemoryCache
+    public class MagicMemoryCache : IMagicCache
     {
         // Actual items in cache.
         readonly Dictionary<string, (object Value, DateTime Expires)> _items = new Dictionary<string, (object, DateTime)>();

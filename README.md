@@ -119,13 +119,13 @@ This slot also supports the following optional arguments.
 Internally the cache this project is using is _not_ the `MemoryCache` from .Net, since this class
 suffers from a whole range of problems in regards to its API, such as not being able to count or
 iterate items, etc. Hence, the actual implementation is _completely custom_, and is based upon
-the `IMagicMemoryCache` interface, which by default is wired up towards its `MagicMemoryCache`
+the `IMagicCache` interface, which by default is wired up towards its `MagicMemoryCache`
 implementation. This is a conscious choice, since first of all the `IMemoryCache` that .Net
 provides out of the box is _really_ slow, in addition to that it is missing a _lot_ of crucial
 parts expected from a mature memory based cache implementation.
 
 If you want to access the actual cache from C# or something, make sure you use it through the dependency
-injected `IMagicMemoryCache` interface, providing you with the implementation class needed to consume
+injected `IMagicCache` interface, providing you with the implementation class needed to consume
 it from C#. This interface has a lot of nice methods you can use to have a robust and fast memory
 based cache implementation in your C# code - In addition to that it synchronises access such that
 no race conditions can be experienced. However, _it is a memory based cache_. If you need better

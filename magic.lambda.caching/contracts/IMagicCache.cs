@@ -6,13 +6,13 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace magic.lambda.caching.helpers
+namespace magic.lambda.caching.contracts
 {
     /// <summary>
-    /// Memory cache extension interface allowing developer to query keys,
+    /// Magic cache extension interface allowing developer to query keys,
     /// and clear (all) items in one go.
     /// </summary>
-    public interface IMagicMemoryCache
+    public interface IMagicCache
     {
         /// <summary>
         /// Creates a new entry.

@@ -8,7 +8,7 @@ using magic.node;
 using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
-using magic.lambda.caching.helpers;
+using magic.lambda.caching.contracts;
 
 namespace magic.lambda.caching
 {
@@ -18,7 +18,7 @@ namespace magic.lambda.caching
     [Slot(Name = "cache.set")]
     public class CacheSet : ISlot
     {
-        readonly IMagicMemoryCache _cache;
+        readonly IMagicCache _cache;
         readonly IRootResolver _rootResolver;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace magic.lambda.caching
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
         /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
-        public CacheSet(IMagicMemoryCache cache, IRootResolver rootResolver)
+        public CacheSet(IMagicCache cache, IRootResolver rootResolver)
         {
             _cache = cache;
             _rootResolver = rootResolver;

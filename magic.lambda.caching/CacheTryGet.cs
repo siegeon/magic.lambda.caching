@@ -9,7 +9,7 @@ using magic.node;
 using magic.node.contracts;
 using magic.node.extensions;
 using magic.signals.contracts;
-using magic.lambda.caching.helpers;
+using magic.lambda.caching.contracts;
 
 namespace magic.lambda.caching
 {
@@ -21,7 +21,7 @@ namespace magic.lambda.caching
     [Slot(Name = "cache.try-get")]
     public class CacheTryGet : ISlotAsync, ISlot
     {
-        readonly IMagicMemoryCache _cache;
+        readonly IMagicCache _cache;
         readonly IRootResolver _rootResolver;
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace magic.lambda.caching
         /// </summary>
         /// <param name="cache">Actual implementation.</param>
         /// <param name="rootResolver">Needed to be able to filter away internally hidden cache items.</param>
-        public CacheTryGet(IMagicMemoryCache cache, IRootResolver rootResolver)
+        public CacheTryGet(IMagicCache cache, IRootResolver rootResolver)
         {
             _cache = cache;
             _rootResolver = rootResolver;
