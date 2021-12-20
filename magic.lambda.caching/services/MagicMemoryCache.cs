@@ -40,8 +40,8 @@ namespace magic.lambda.caching.services
                 throw new HyperlambdaException("You cannot insert an item into your cache without providing us with a key.");
             if (utcExpiration < DateTime.UtcNow)
                 throw new HyperlambdaException($"You cannot insert a new item into your cache with an expiration date that is in the past. Cache key of item that created conflict was '{key}'");
-            if (!hidden && key.StartsWith("."))
-                throw new HyperlambdaException($"You cannot insert a new item into your cache that starts with a period (.) - Cache key of item that created conflict was '{key}'");
+            if (key.StartsWith(".") || key.StartsWith("+"))
+                throw new HyperlambdaException($"You cannot insert a new item into your cache that starts with a period (.) or a plus (+) - Cache key of item that created conflict was '{key}'");
 
             // Synchronizing access to shared resource.
             lock (_lock)
@@ -50,7 +50,7 @@ namespace magic.lambda.caching.services
                 PurgeExpiredItems();
 
                 // Upserting item into cache.
-                _items[_rootResolver.RootFolder + (hidden ? "." : "") + key] = (Value: value, Expires: utcExpiration);
+                _items[_rootResolver.RootFolder + (hidden ? "." : "+") + key] = (Value: value, Expires: utcExpiration);
             }
         }
 
@@ -60,14 +60,14 @@ namespace magic.lambda.caching.services
             // Sanity checking invocation.
             if (string.IsNullOrEmpty(key))
                 throw new HyperlambdaException("You cannot remove an item from your cache without providing us with a key.");
-            if (!hidden && key.StartsWith("."))
-                throw new HyperlambdaException($"You cannot delete items from your cache starting with a period (.) - Cache key of item that created conflict was '{key}'");
+            if (key.StartsWith(".") || key.StartsWith("+"))
+                throw new HyperlambdaException($"You cannot delete items from your cache starting with a period (.) or a plus (+) - Cache key of item that created conflict was '{key}'");
 
             // Synchronizing access to shared resource.
             lock (_lock)
             {
                 // Notice, we don't purge expired items on remove, only in get/modify/etc ...
-                _items.Remove(_rootResolver.RootFolder + (hidden ? "." : "") + key);
+                _items.Remove(_rootResolver.RootFolder + (hidden ? "." : "+") + key);
             }
         }
 
@@ -77,8 +77,8 @@ namespace magic.lambda.caching.services
             // Sanity checking invocation.
             if (string.IsNullOrEmpty(key))
                 throw new HyperlambdaException("You cannot get an item from your cache without providing us with a key.");
-            if (!hidden && key.StartsWith("."))
-                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) - Cache key of item that created conflict was '{key}'");
+            if (key.StartsWith(".") || key.StartsWith("+"))
+                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) or a plus (+) - Cache key of item that created conflict was '{key}'");
 
             // Synchronizing access to shared resource.
             lock (_lock)
@@ -89,7 +89,7 @@ namespace magic.lambda.caching.services
                 // Retrieving item if existing from dictionary.
                 return _items.TryGetValue(
                     _rootResolver.RootFolder +
-                    (hidden ? "." : "") +
+                    (hidden ? "." : "+") +
                     key,
                     out var value) ? value.Value : null;
             }
@@ -99,11 +99,11 @@ namespace magic.lambda.caching.services
         public void Clear(string filter = null, bool hidden = false)
         {
             // Sanity checking invocation.
-            if (!hidden && (filter?.StartsWith(".") ?? false))
-                throw new HyperlambdaException($"You cannot clear items from your cache starting with a period (.) - Filter that created conflict was '{filter}'");
+            if (!string.IsNullOrEmpty(filter) && (filter.StartsWith(".") || filter.StartsWith("+")))
+                throw new HyperlambdaException($"You cannot clear items from your cache starting with a period (.) or a (+) - Filter that created conflict was '{filter}'");
 
             // Prepending root value to cache filter.
-            filter = _rootResolver.RootFolder + (hidden ? "." : "") + filter;
+            filter = _rootResolver.RootFolder + (hidden ? "." : "+") + filter;
 
             // Synchronizing access to shared resource.
             lock (_lock)
@@ -119,11 +119,11 @@ namespace magic.lambda.caching.services
         public IEnumerable<KeyValuePair<string, object>> Items(string filter = null, bool hidden = false)
         {
             // Sanity checking invocation.
-            if (!hidden && (filter?.StartsWith(".") ?? false))
-                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) - Filter that created conflict was '{filter}'");
+            if (!string.IsNullOrEmpty(filter) && (filter.StartsWith(".") || filter.StartsWith("+")))
+                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) or a plus (+) - Filter that created conflict was '{filter}'");
 
             // Prepending root value to cache filter.
-            filter = _rootResolver.RootFolder + (hidden ? "." : "") + filter;
+            filter = _rootResolver.RootFolder + (hidden ? "." : "+") + filter;
 
             // Synchronizing access to shared resource.
             lock (_lock)
@@ -131,10 +131,10 @@ namespace magic.lambda.caching.services
                 // Purging all expired items.
                 PurgeExpiredItems();
                 return _items
-                    .Where(x => x.Key.StartsWith(filter) && (hidden || x.Key[_rootResolver.RootFolder.Length] != '.'))
+                    .Where(x => x.Key.StartsWith(filter))
                     .Select(x => 
                         new KeyValuePair<string, object>(
-                            x.Key.Substring(_rootResolver.RootFolder.Length + (hidden ? 1 : 0)),
+                            x.Key.Substring(_rootResolver.RootFolder.Length + 1),
                             x.Value.Value))
                     .ToList();
             }
@@ -146,8 +146,8 @@ namespace magic.lambda.caching.services
             // Sanity checking invocation.
             if (string.IsNullOrEmpty(key))
                 throw new HyperlambdaException("You cannot get an item from your cache without providing us with a key.");
-            if (!hidden && key.StartsWith("."))
-                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) - Cache key of item that created conflict was '{key}'");
+            if (key.StartsWith(".") || key.StartsWith("+"))
+                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) or plus (+) - Cache key of item that created conflict was '{key}'");
 
             /*
              * Notice, to avoid locking entire cache as we invoke factory lambda, we
@@ -163,7 +163,7 @@ namespace magic.lambda.caching.services
                     PurgeExpiredItems();
 
                     // Checking cache.
-                    if (_items.TryGetValue(_rootResolver.RootFolder + (hidden ? "." : "") + key, out var value))
+                    if (_items.TryGetValue(_rootResolver.RootFolder + (hidden ? "." : "+") + key, out var value))
                         return value.Value; // Item found in cache, and it's not expired
                 }
 
@@ -185,7 +185,7 @@ namespace magic.lambda.caching.services
                 // Synchronizing access to shared resource.
                 lock (_lock)
                 {
-                    _items[_rootResolver.RootFolder + (hidden ? "." : "") + key] = newValue;
+                    _items[_rootResolver.RootFolder + (hidden ? "." : "+") + key] = newValue;
                     return newValue.Item1;
                 }
             }
@@ -197,8 +197,8 @@ namespace magic.lambda.caching.services
             // Sanity checking invocation.
             if (string.IsNullOrEmpty(key))
                 throw new HyperlambdaException("You cannot get an item from your cache without providing us with a key.");
-            if (!hidden && key.StartsWith("."))
-                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) - Cache key of item that created conflict was '{key}'");
+            if (key.StartsWith(".") || key.StartsWith("+"))
+                throw new HyperlambdaException($"You cannot get items from your cache starting with a period (.) or plus (+) - Cache key of item that created conflict was '{key}'");
 
             /*
              * Notice, to avoid locking entire cache as we invoke factory lambda, we
@@ -214,7 +214,7 @@ namespace magic.lambda.caching.services
                     PurgeExpiredItems();
 
                     // Checking cache.
-                    if (_items.TryGetValue(_rootResolver.RootFolder + (hidden ? "." : "") + key, out var value))
+                    if (_items.TryGetValue(_rootResolver.RootFolder + (hidden ? "." : "+") + key, out var value))
                         return value.Value; // Item found in cache, and it's not expired
                 }
 
@@ -232,7 +232,7 @@ namespace magic.lambda.caching.services
                 // Synchronizing access to shared resource.
                 lock (_lock)
                 {
-                    _items[_rootResolver.RootFolder + (hidden ? "." : "") + key] = newValue;
+                    _items[_rootResolver.RootFolder + (hidden ? "." : "+") + key] = newValue;
                     return newValue.Item1;
                 }
             }
