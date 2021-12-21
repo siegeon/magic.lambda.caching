@@ -78,13 +78,6 @@ cache.get:foo");
         }
 
         [Fact]
-        public void CacheSetNullKey()
-        {
-            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"cache.set
-   value:howdy world"));
-        }
-
-        [Fact]
         public void CacheTryGet()
         {
             var lambda = Common.Evaluate(@"
@@ -144,6 +137,38 @@ cache.set:foo
 cache.clear
 cache.get:foo");
             Assert.Null(lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetThrows_01()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.set:+foo
+   value:howdy world"));
+        }
+
+        [Fact]
+        public void CacheSetThrows_02()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.set:.foo
+   value:howdy world"));
+        }
+
+        [Fact]
+        public void CacheSetThrows_03()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.set:
+   value:howdy world"));
+        }
+
+        [Fact]
+        public void CacheSetThrows_04()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.set
+   value:howdy world"));
         }
 
         [Fact]
