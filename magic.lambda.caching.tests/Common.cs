@@ -23,22 +23,17 @@ namespace magic.lambda.caching.tests
     {
         private class RootResolver : IRootResolver
         {
+            public string DynamicFiles => AppDomain.CurrentDomain.BaseDirectory;
             public string RootFolder => AppDomain.CurrentDomain.BaseDirectory;
-            public string AbsoluteRootFolder => AppDomain.CurrentDomain.BaseDirectory;
 
             public string AbsolutePath(string path)
             {
-                return RootFolder + path.TrimStart(new char[] { '/', '\\' });
-            }
-
-            public string RootPath(string path)
-            {
-                return RootFolder + path.TrimStart(new char[] { '/', '\\' });
+                return DynamicFiles + path.TrimStart(new char[] { '/', '\\' });
             }
 
             public string RelativePath(string path)
             {
-                return path.Substring(RootFolder.Length - 1);
+                return path.Substring(DynamicFiles.Length - 1);
             }
         }
 

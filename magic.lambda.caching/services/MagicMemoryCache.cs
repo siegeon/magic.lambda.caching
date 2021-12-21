@@ -115,7 +115,7 @@ namespace magic.lambda.caching.services
                     .Where(x => x.Key.StartsWith(filter))
                     .Select(x => 
                         new KeyValuePair<string, object>(
-                            x.Key.Substring(_rootResolver.RootFolder.Length + 1),
+                            x.Key.Substring(_rootResolver.DynamicFiles.Length + 1),
                             x.Value.Value))
                     .ToList();
             }
