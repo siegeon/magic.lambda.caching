@@ -24,8 +24,14 @@ namespace magic.lambda.caching.tests
         private class RootResolver : IRootResolver
         {
             public string RootFolder => AppDomain.CurrentDomain.BaseDirectory;
+            public string AbsoluteRootFolder => AppDomain.CurrentDomain.BaseDirectory;
 
             public string AbsolutePath(string path)
+            {
+                return RootFolder + path.TrimStart(new char[] { '/', '\\' });
+            }
+
+            public string RootPath(string path)
             {
                 return RootFolder + path.TrimStart(new char[] { '/', '\\' });
             }
@@ -55,7 +61,7 @@ namespace magic.lambda.caching.tests
         public static ISignaler Initialize(bool config = true)
         {
             var services = new ServiceCollection();
-            var mockConfiguration = new Mock<IConfiguration>();
+            var mockConfiguration = new Mock<IMagicConfiguration>();
             mockConfiguration
                 .SetupGet(x => x[It.Is<string>(x => x == "magic:caching:expiration")])
                 .Returns(() => config ? "5" : null);
