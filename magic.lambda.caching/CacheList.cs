@@ -44,12 +44,13 @@ namespace magic.lambda.caching
                 .FirstOrDefault(x => x.Name == "limit")?
                 .GetEx<int>() ?? 10;
 
-            var filter = input
+            var filter = input.GetEx<string>() ?? input
                 .Children
                 .FirstOrDefault(x => x.Name == "filter")?
                 .GetEx<string>();
 
             input.Clear();
+            input.Value = null;
 
             var items = _cache
                 .Items(filter, false)

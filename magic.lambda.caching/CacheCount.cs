@@ -35,11 +35,12 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var filter = input
+            var filter = input.GetEx<string>() ?? input
                 .Children
                 .FirstOrDefault(x => x.Name == "filter")?
                 .GetEx<string>();
             input.Clear();
+            input.Value = null;
             input.Value = _cache.Items(filter).Count();
         }
     }
