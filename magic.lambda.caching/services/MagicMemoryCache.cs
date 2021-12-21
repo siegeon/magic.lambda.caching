@@ -20,7 +20,6 @@ namespace magic.lambda.caching.services
     public class MagicMemoryCache : IMagicCache
     {
         readonly Dictionary<string, (object Value, DateTime Expires)> _items = new Dictionary<string, (object, DateTime)>();
-        readonly static object _lock = new object();
         readonly IRootResolver _rootResolver;
 
         /// <summary>
@@ -40,8 +39,10 @@ namespace magic.lambda.caching.services
                 throw new HyperlambdaException($"You cannot upsert a new item into your cache with an expiration date that is in the past. Cache key of item that created conflict was '{key}'");
 
             // Synchronizing access to shared resource.
-            lock (_lock)
+            using (var locker = new MagicLockerSlim())
             {
+                locker.Lock();
+
                 // Purging all expired items.
                 PurgeExpiredItems();
 
@@ -54,8 +55,10 @@ namespace magic.lambda.caching.services
         public void Remove(string key, bool hidden = false)
         {
             // Synchronizing access to shared resource.
-            lock (_lock)
+            using (var locker = new MagicLockerSlim())
             {
+                locker.Lock();
+
                 // Notice, we don't purge expired items on remove, only in get/modify/etc ...
                 _items.Remove(GetKey(key, hidden));
             }
@@ -65,8 +68,10 @@ namespace magic.lambda.caching.services
         public object Get(string key, bool hidden = false)
         {
             // Synchronizing access to shared resource.
-            lock (_lock)
+            using (var locker = new MagicLockerSlim())
             {
+                locker.Lock();
+
                 // Purging all expired items.
                 PurgeExpiredItems();
 
@@ -82,8 +87,10 @@ namespace magic.lambda.caching.services
             filter = GetFilter(filter, hidden);
 
             // Synchronizing access to shared resource.
-            lock (_lock)
+            using (var locker = new MagicLockerSlim())
             {
+                locker.Lock();
+
                 foreach (var idx in _items.Where(x => x.Key.StartsWith(filter)).ToList())
                 {
                     _items.Remove(idx.Key);
@@ -98,8 +105,10 @@ namespace magic.lambda.caching.services
             filter = GetFilter(filter, hidden);
 
             // Synchronizing access to shared resource.
-            lock (_lock)
+            using (var locker = new MagicLockerSlim())
             {
+                locker.Lock();
+
                 // Purging all expired items.
                 PurgeExpiredItems();
                 return _items
@@ -126,8 +135,10 @@ namespace magic.lambda.caching.services
             {
                 // Synchronizing access to shared resource. ORDER COUNTS!
                 locker.Lock();
-                lock (_lock)
+                using (var locker2 = new MagicLockerSlim())
                 {
+                    locker2.Lock();
+
                     // Purging all expired items.
                     PurgeExpiredItems();
 
@@ -152,8 +163,10 @@ namespace magic.lambda.caching.services
                     throw new HyperlambdaException($"You cannot insert a new item into your cache with an expiration date that is in the past. Cache key of item that created conflict was '{key}'");
 
                 // Synchronizing access to shared resource.
-                lock (_lock)
+                using (var locker2 = new MagicLockerSlim())
                 {
+                    locker2.Lock();
+
                     _items[key] = newValue;
                     return newValue.Item1;
                 }
@@ -174,8 +187,10 @@ namespace magic.lambda.caching.services
             {
                 // Synchronizing access to shared resource. ORDER COUNTS!
                 locker.Lock();
-                lock (_lock)
+                using (var locker2 = new MagicLockerSlim())
                 {
+                    await locker2.LockAsync();
+
                     // Purging all expired items.
                     PurgeExpiredItems();
 
@@ -196,8 +211,10 @@ namespace magic.lambda.caching.services
                 var newValue = await factory();
 
                 // Synchronizing access to shared resource.
-                lock (_lock)
+                using (var locker2 = new MagicLockerSlim())
                 {
+                    await locker2.LockAsync();
+
                     _items[key] = newValue;
                     return newValue.Item1;
                 }
