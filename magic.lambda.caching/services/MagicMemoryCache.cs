@@ -115,6 +115,9 @@ namespace magic.lambda.caching.services
         /// <inheritdoc/>
         public object GetOrCreate(string key, Func<(object, DateTime)> factory, bool hidden = false)
         {
+            // Creating a unique key.
+            key = GetKey(key, hidden);
+
             /*
              * Notice, to avoid locking entire cache as we invoke factory lambda, we
              * use MagicLocker here, which will only lock on the specified key.
@@ -129,7 +132,7 @@ namespace magic.lambda.caching.services
                     PurgeExpiredItems();
 
                     // Checking cache.
-                    if (_items.TryGetValue(GetKey(key, hidden), out var value))
+                    if (_items.TryGetValue(key, out var value))
                         return value.Value; // Item found in cache, and it's not expired
                 }
 
@@ -151,7 +154,7 @@ namespace magic.lambda.caching.services
                 // Synchronizing access to shared resource.
                 lock (_lock)
                 {
-                    _items[GetKey(key, hidden)] = newValue;
+                    _items[key] = newValue;
                     return newValue.Item1;
                 }
             }
@@ -160,6 +163,9 @@ namespace magic.lambda.caching.services
         /// <inheritdoc/>
         public async Task<object> GetOrCreateAsync(string key, Func<Task<(object, DateTime)>> factory, bool hidden = false)
         {
+            // Creating a unique key.
+            key = GetKey(key, hidden);
+
             /*
              * Notice, to avoid locking entire cache as we invoke factory lambda, we
              * use MagicLocker here, which will only lock on the specified key.
@@ -167,14 +173,14 @@ namespace magic.lambda.caching.services
             using (var locker = new MagicLocker(key))
             {
                 // Synchronizing access to shared resource. ORDER COUNTS!
-                await locker.LockAsync();
+                locker.Lock();
                 lock (_lock)
                 {
                     // Purging all expired items.
                     PurgeExpiredItems();
 
                     // Checking cache.
-                    if (_items.TryGetValue(GetKey(key, hidden), out var value))
+                    if (_items.TryGetValue(key, out var value))
                         return value.Value; // Item found in cache, and it's not expired
                 }
 
@@ -192,7 +198,7 @@ namespace magic.lambda.caching.services
                 // Synchronizing access to shared resource.
                 lock (_lock)
                 {
-                    _items[GetKey(key, hidden)] = newValue;
+                    _items[key] = newValue;
                     return newValue.Item1;
                 }
             }

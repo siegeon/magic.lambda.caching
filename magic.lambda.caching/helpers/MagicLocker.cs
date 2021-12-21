@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Concurrent;
 
 namespace magic.lambda.caching.helpers
@@ -17,25 +16,25 @@ namespace magic.lambda.caching.helpers
      *
      * Make sure you use the "using" pattern as you instantiate the class since the lock is
      * released as the object is disposed.
+     *
+     * Notice, since SemaphoreSlim is using SpinWait, it cannot be used as a semaphore for
+     * this class, since that implies exhausting CPU resources, since the MagicLocker is
+     * only used in factory methods for creating cache items, which might take a very long
+     * time. Therefor we're using a full Semaphore and NOT SemaphoreSlim.
      */
     internal sealed class MagicLocker : IDisposable
     {
-        static readonly ConcurrentDictionary<string, SemaphoreSlim> _lockers = new ConcurrentDictionary<string, SemaphoreSlim>();
-        readonly SemaphoreSlim _semaphore;
+        static readonly ConcurrentDictionary<string, Semaphore> _lockers = new ConcurrentDictionary<string, Semaphore>();
+        readonly Semaphore _semaphore;
 
         public MagicLocker(string key)
         {
-            _semaphore = _lockers.GetOrAdd(key, (_) => new SemaphoreSlim(1));
+            _semaphore = _lockers.GetOrAdd(key, (_) => new Semaphore(1, 1));
         }
 
         public void Lock()
         {
-            _semaphore.Wait();
-        }
-
-        public async Task LockAsync()
-        {
-            await _semaphore.WaitAsync();
+            _semaphore.WaitOne();
         }
 
         public void Dispose()
