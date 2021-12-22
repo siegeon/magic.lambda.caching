@@ -10,7 +10,7 @@
     <Description>Caching helper slots for Magic, allowing you to easily cache items in Hyperlambda. Uses Memory Cache, and is not distributed in any ways. To use package go to https://polterguy.github.io</Description>
     <PackageProjectUrl>https://github.com/polterguy/magic.lambda.caching</PackageProjectUrl>
     <PackOnBuild>true</PackOnBuild>
-    <PackageVersion>10.0.7</PackageVersion>
+    <PackageVersion>10.0.8</PackageVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/polterguy/magic.lambda.caching.git</RepositoryUrl>
