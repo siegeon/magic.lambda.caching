@@ -24,6 +24,59 @@ cache.get:foo");
         }
 
         [Fact]
+        public void CacheSetSleepGet()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo
+   expiration:1
+   value:howdy world
+sleep:2
+cache.get:foo");
+            Assert.Empty(lambda.Children.Skip(2).First().Children);
+        }
+
+        [Fact]
+        public void CacheSetListLimit_01()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   expiration:5
+   value:howdy world1
+cache.set:foo2
+   expiration:5
+   value:howdy world2
+cache.list:foo
+   limit:1
+   offset:1");
+            Assert.Single(lambda.Children.Skip(2).First().Children);
+            Assert.Equal(".", lambda.Children.Skip(2).First().Children.First().Name);
+            Assert.Equal("key", lambda.Children.Skip(2).First().Children.First().Children.First().Name);
+            Assert.Equal("foo2", lambda.Children.Skip(2).First().Children.First().Children.First().Value);
+            Assert.Equal("value", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Name);
+            Assert.Equal("howdy world2", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetListLimit_02()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   expiration:5
+   value:node:howdy world1
+cache.set:foo2
+   expiration:5
+   value:node:howdy world2
+cache.list:foo
+   limit:1
+   offset:1");
+            Assert.Single(lambda.Children.Skip(2).First().Children);
+            Assert.Equal(".", lambda.Children.Skip(2).First().Children.First().Name);
+            Assert.Equal("key", lambda.Children.Skip(2).First().Children.First().Children.First().Name);
+            Assert.Equal("foo2", lambda.Children.Skip(2).First().Children.First().Children.First().Value);
+            Assert.Equal("value", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Name);
+        }
+
+        [Fact]
         public void CacheSetGetExpressionValue()
         {
             var lambda = Common.Evaluate(@"
@@ -123,13 +176,22 @@ cache.try-get
         }
 
         [Fact]
+        public void CacheTryGetIllegalKey()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.try-get:.xyz
+   .lambda
+      return:Howdy World"));
+        }
+
+        [Fact]
         public void CacheTryGetNullLambda()
         {
             Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"cache.try-get:foo"));
         }
 
         [Fact]
-        public void CacheSetClearGet()
+        public void CacheSetClearGet_01()
         {
             var lambda = Common.Evaluate(@"
 cache.set:foo
@@ -137,6 +199,32 @@ cache.set:foo
 cache.clear
 cache.get:foo");
             Assert.Null(lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetClearGet_02()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.clear:foo
+cache.list:foo");
+            Assert.Empty(lambda.Children.Skip(3).First().Children);
+        }
+
+        [Fact]
+        public void CacheSetClearGet_03()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.clear:foo2
+cache.list:foo");
+            Assert.Single(lambda.Children.Skip(3).First().Children);
         }
 
         [Fact]
@@ -172,13 +260,60 @@ cache.set
         }
 
         [Fact]
-        public void CacheSetCount()
+        public void CacheSetThrows_05()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.set:foo
+   value:howdy world
+   expiration:-5"));
+        }
+
+        [Fact]
+        public void CacheSetCount_01()
         {
             var lambda = Common.Evaluate(@"
 cache.set:foo
    value:howdy world
 cache.count");
             Assert.Equal(1, lambda.Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetCount_02()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.count:foo2");
+            Assert.Equal(1, lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetCount_03()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.count:foo");
+            Assert.Equal(2, lambda.Children.Skip(2).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetCount_04()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.set:xxx_foo2
+   value:howdy world
+cache.count:foo");
+            Assert.Equal(2, lambda.Children.Skip(3).First().Value);
         }
 
         [Fact]
@@ -194,7 +329,16 @@ cache.list");
         }
 
         [Fact]
-        public void CacheTryGetNode()
+        public void CacheSetList_Throws()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.set:foo
+   value:howdy world
+cache.list:.xyz"));
+        }
+
+        [Fact]
+        public void CacheTryGet_01()
         {
             var lambda = Common.Evaluate(@"
 cache.try-get:foo
@@ -207,6 +351,64 @@ cache.get:foo");
             Assert.Null(lambda.Children.Skip(1).First().GetEx<Node>().Value);
             Assert.Equal("foo", lambda.Children.Skip(1).First().GetEx<Node>().Children.First().Name);
             Assert.Equal("bar", lambda.Children.Skip(1).First().GetEx<Node>().Children.First().Value);
+        }
+
+        [Fact]
+        public void CacheTryGet_02()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo
+   value:node:""foo:bar""
+cache.try-get:foo
+   .lambda
+      return
+         foo:bar
+cache.get:foo");
+            Assert.Equal(typeof(Node), lambda.Children.Skip(2).First().Value.GetType());
+            Assert.Equal("", lambda.Children.Skip(2).First().GetEx<Node>().Name);
+            Assert.Null(lambda.Children.Skip(2).First().GetEx<Node>().Value);
+            Assert.Equal("foo", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Name);
+            Assert.Equal("bar", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Value);
+        }
+
+        [Fact]
+        public async Task CacheTryGet_02_Async()
+        {
+            var lambda = await Common.EvaluateAsync(@"
+cache.set:foo
+   value:node:""foo:bar""
+cache.try-get:foo
+   .lambda
+      return
+         foo:bar
+cache.get:foo");
+            Assert.Equal(typeof(Node), lambda.Children.Skip(2).First().Value.GetType());
+            Assert.Equal("", lambda.Children.Skip(2).First().GetEx<Node>().Name);
+            Assert.Null(lambda.Children.Skip(2).First().GetEx<Node>().Value);
+            Assert.Equal("foo", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Name);
+            Assert.Equal("bar", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Value);
+        }
+
+        [Fact]
+        public void CacheTryGet_Throws_01()
+        {
+            Assert.Throws<HyperlambdaException>(() => Common.Evaluate(@"
+cache.try-get:foo
+   expiration:-5
+   .lambda
+      return
+         foo:bar"));
+        }
+
+        [Fact]
+        public async Task CacheTryGet_Async_Throws_01()
+        {
+            await Assert.ThrowsAsync<HyperlambdaException>(async () => await Common.EvaluateAsync(@"
+cache.try-get:foo
+   expiration:-5
+   .lambda
+      return
+         foo:bar"));
         }
 
         [Fact]
