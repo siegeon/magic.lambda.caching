@@ -30,9 +30,9 @@ cache.get:foo");
 cache.set:foo
    expiration:1
    value:howdy world
-sleep:2
+sleep:2000
 cache.get:foo");
-            Assert.Empty(lambda.Children.Skip(2).First().Children);
+            Assert.Null(lambda.Children.Skip(2).First().Value);
         }
 
         [Fact]
@@ -269,6 +269,20 @@ cache.set:foo2
 cache.clear:foo2
 cache.list:foo");
             Assert.Single(lambda.Children.Skip(3).First().Children);
+        }
+
+        [Fact]
+        public void CacheSetClearGet_04()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.clear
+   filter:foo
+cache.list:foo");
+            Assert.Empty(lambda.Children.Skip(3).First().Children);
         }
 
         [Fact]
