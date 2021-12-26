@@ -77,6 +77,50 @@ cache.list:foo
         }
 
         [Fact]
+        public void CacheSetListLimit_03()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   expiration:5
+   value:howdy world1
+cache.set:foo2
+   expiration:5
+   value:howdy world2
+cache.list
+   filter:foo
+   limit:1
+   offset:1");
+            Assert.Single(lambda.Children.Skip(2).First().Children);
+            Assert.Equal(".", lambda.Children.Skip(2).First().Children.First().Name);
+            Assert.Equal("key", lambda.Children.Skip(2).First().Children.First().Children.First().Name);
+            Assert.Equal("foo2", lambda.Children.Skip(2).First().Children.First().Children.First().Value);
+            Assert.Equal("value", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Name);
+            Assert.Equal("howdy world2", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetListLimit_04()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   expiration:5
+   value:howdy world1
+cache.set:foo2
+   expiration:5
+   value:howdy world2
+cache.list
+   filter:foo
+   limit:1
+   offset:1");
+            Assert.Single(lambda.Children.Skip(2).First().Children);
+            Assert.Equal(".", lambda.Children.Skip(2).First().Children.First().Name);
+            Assert.Equal("key", lambda.Children.Skip(2).First().Children.First().Children.First().Name);
+            Assert.Equal("foo2", lambda.Children.Skip(2).First().Children.First().Children.First().Value);
+            Assert.Equal("value", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Name);
+            Assert.Equal("howdy world2", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Value);
+        }
+
+        [Fact]
         public void CacheSetGetExpressionValue()
         {
             var lambda = Common.Evaluate(@"
@@ -314,6 +358,19 @@ cache.set:xxx_foo2
    value:howdy world
 cache.count:foo");
             Assert.Equal(2, lambda.Children.Skip(3).First().Value);
+        }
+
+        [Fact]
+        public void CacheSetCount_05()
+        {
+            var lambda = Common.Evaluate(@"
+cache.set:foo1
+   value:howdy world
+cache.set:foo2
+   value:howdy world
+cache.count
+   filter:foo2");
+            Assert.Equal(1, lambda.Children.Skip(2).First().Value);
         }
 
         [Fact]
