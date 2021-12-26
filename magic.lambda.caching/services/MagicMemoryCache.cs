@@ -210,6 +210,10 @@ namespace magic.lambda.caching.services
                  */
                 var newValue = await factory();
 
+                // Sanity checking invocation.
+                if (newValue.Item2 < DateTime.UtcNow)
+                    throw new HyperlambdaException($"You cannot insert a new item into your cache with an expiration date that is in the past. Cache key of item that created conflict was '{key}'");
+
                 // Synchronizing access to shared resource.
                 using (var locker2 = new MagicLockerSlim())
                 {
