@@ -3,6 +3,7 @@
  */
 
 using System.Linq;
+using System.Threading.Tasks;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -14,7 +15,7 @@ namespace magic.lambda.caching
     /// [cache.list] slot returning all cache items to caller.
     /// </summary>
     [Slot(Name = "cache.list")]
-    public class CacheList : ISlot
+    public class CacheList : ISlot, ISlotAsync
     {
         readonly IMagicCache _cache;
 
@@ -34,6 +35,16 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
+            SignalAsync(signaler, input).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Slot implementation.
+        /// </summary>
+        /// <param name="signaler">Signaler that raised the signal.</param>
+        /// <param name="input">Arguments to slot.</param>
+        public async Task SignalAsync(ISignaler signaler, Node input)
+        {
             var offset = input
                 .Children
                 .FirstOrDefault(x => x.Name == "offset")?
@@ -52,8 +63,7 @@ namespace magic.lambda.caching
             input.Clear();
             input.Value = null;
 
-            var items = _cache
-                .Items(filter, false)
+            var items = (await _cache.ItemsAsync(filter, false))
                 .Skip(offset)
                 .Take(limit)
                 .OrderBy(x => x.Key);

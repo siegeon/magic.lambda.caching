@@ -3,6 +3,7 @@
  */
 
 using System.Linq;
+using System.Threading.Tasks;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -15,7 +16,7 @@ namespace magic.lambda.caching
     /// declaring which items to clear.
     /// </summary>
     [Slot(Name = "cache.clear")]
-    public class CacheClear : ISlot
+    public class CacheClear : ISlot, ISlotAsync
     {
         readonly IMagicCache _cache;
  
@@ -35,13 +36,23 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
+            SignalAsync(signaler, input).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Slot implementation.
+        /// </summary>
+        /// <param name="signaler">Signaler that raised the signal.</param>
+        /// <param name="input">Arguments to slot.</param>
+        public async Task SignalAsync(ISignaler signaler, Node input)
+        {
             var filter = input.GetEx<string>() ?? input
                 .Children
                 .FirstOrDefault(x => x.Name == "filter")?
                 .GetEx<string>();
             input.Clear();
             input.Value = null;
-            _cache.Clear(filter);
+            await _cache.ClearAsync(filter);
         }
     }
 }

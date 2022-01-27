@@ -38,18 +38,7 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            var args = GetArgs(input);
-
-            input.Value = _cache.GetOrCreate(args.Key, () =>
-            {
-                var result = new Node();
-                signaler.Scope("slots.result", result, () =>
-                {
-                    signaler.Signal("eval", args.Lambda.Clone());
-                });
-                return (result.Value ?? result.Clone(), args.UtcExpires);
-            });
-            input.Clear();
+            SignalAsync(signaler, input).GetAwaiter().GetResult();
         }
 
         /// <summary>

@@ -22,14 +22,14 @@ namespace magic.lambda.caching.contracts
         /// <param name="value">The actual value of the item.</param>
         /// <param name="utcExpiration">UTC date and time of when item expires.</param>
         /// <param name="hidden">If true, item will be hidden.</param>
-        void Upsert(string key, object value, DateTime utcExpiration, bool hidden = false);
+        Task UpsertAsync(string key, object value, DateTime utcExpiration, bool hidden = false);
 
         /// <summary>
         /// Removes the specified cache entry with the specified key.
         /// </summary>
         /// <param name="key">Key of item to remove.</param>
         /// <param name="hidden">If true, item will be assumed to be hidden.</param>
-        void Remove(string key, bool hidden = false);
+        Task RemoveAsync(string key, bool hidden = false);
 
         /// <summary>
         /// Returns a single cache entry.
@@ -37,14 +37,14 @@ namespace magic.lambda.caching.contracts
         /// <param name="key">Key of item to get.</param>
         /// <param name="hidden">If true, item will be stored hidden.</param>
         /// <returns>Actual item.</returns>
-        object Get(string key, bool hidden = false);
+        Task<object> GetAsync(string key, bool hidden = false);
 
         /// <summary>
         /// Clears cache entirely, optionally only items matching the specified filter.
         /// </summary>
         /// <param name="filter">Optional filter conditiong items needs to match in order to be removed.</param>
         /// <param name="hidden">If true, only hidden items will be removed.</param>
-        void Clear(string filter = null, bool hidden = false);
+        Task ClearAsync(string filter = null, bool hidden = false);
 
         /// <summary>
         /// Returns all items in cache, optionally only items matching the specified filter.
@@ -52,18 +52,7 @@ namespace magic.lambda.caching.contracts
         /// <param name="filter">Optional filter conditiong items needs to match in order to be returned.</param>
         /// <param name="hidden">If true, only hidden items will be returned.</param>
         /// <returns>Enumerable of all items currently stored in cache.</returns>
-        IEnumerable<KeyValuePair<string, object>> Items(string filter = null, bool hidden = false);
-
-        /// <summary>
-        /// Retrieves a single item from cache, and if not existing, creates the item,
-        /// adds it to the cache, and returns to caller. Operation is atomic, implying only
-        /// one thread will access the create factory function.
-        /// </summary>
-        /// <param name="key">Key of item to create or retrieve.</param>
-        /// <param name="factory">Factory method to invoke if item cannot be found in cache.</param>
-        /// <param name="hidden">If true, item will be stored as hidden.</param>
-        /// <returns>Object as created and/or found in cache.</returns>
-        object GetOrCreate(string key, Func<(object, DateTime)> factory, bool hidden = false);
+        Task<IEnumerable<KeyValuePair<string, object>>> ItemsAsync(string filter = null, bool hidden = false);
 
         /// <summary>
         /// Retrieves a single item from cache, and if not existing, creates the item,

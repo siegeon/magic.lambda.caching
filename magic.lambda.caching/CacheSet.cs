@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -15,7 +16,7 @@ namespace magic.lambda.caching
     /// [cache.set] slot saving its first child node's value to the memory cache.
     /// </summary>
     [Slot(Name = "cache.set")]
-    public class CacheSet : ISlot
+    public class CacheSet : ISlot, ISlotAsync
     {
         readonly IMagicCache _cache;
 
@@ -35,6 +36,16 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
+            SignalAsync(signaler, input).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Slot implementation.
+        /// </summary>
+        /// <param name="signaler">Signaler that raised the signal.</param>
+        /// <param name="input">Arguments to slot.</param>
+        public async Task SignalAsync(ISignaler signaler, Node input)
+        {
             var key = input.GetEx<string>() ?? throw new HyperlambdaException("[cache.set] must be given a key");
 
             var val = input
@@ -45,7 +56,7 @@ namespace magic.lambda.caching
             // Checking if value is null, at which point we simply remove cached item.
             if (val == null)
             {
-                _cache.Remove(key);
+                await _cache.RemoveAsync(key);
                 return;
             }
 
@@ -55,7 +66,7 @@ namespace magic.lambda.caching
                 .FirstOrDefault(x => x.Name == "expiration")?
                 .GetEx<long>() ?? 5;
 
-            _cache.Upsert(key, val, DateTime.UtcNow.AddSeconds(expiration));
+            await _cache.UpsertAsync(key, val, DateTime.UtcNow.AddSeconds(expiration));
         }
     }
 }

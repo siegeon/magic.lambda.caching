@@ -2,6 +2,7 @@
  * Magic Cloud, copyright Aista, Ltd. See the attached LICENSE file for details.
  */
 
+using System.Threading.Tasks;
 using magic.node;
 using magic.node.extensions;
 using magic.signals.contracts;
@@ -13,7 +14,7 @@ namespace magic.lambda.caching
     /// [cache.get] slot returning an item from the cache, if existing.
     /// </summary>
     [Slot(Name = "cache.get")]
-    public class CacheGet : ISlot
+    public class CacheGet : ISlot, ISlotAsync
     {
         readonly IMagicCache _cache;
 
@@ -33,7 +34,17 @@ namespace magic.lambda.caching
         /// <param name="input">Arguments to slot.</param>
         public void Signal(ISignaler signaler, Node input)
         {
-            input.Value = _cache.Get(input.GetEx<string>());
+            SignalAsync(signaler, input).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Slot implementation.
+        /// </summary>
+        /// <param name="signaler">Signaler that raised the signal.</param>
+        /// <param name="input">Arguments to slot.</param>
+        public async Task SignalAsync(ISignaler signaler, Node input)
+        {
+            input.Value = await _cache.GetAsync(input.GetEx<string>());
         }
     }
 }
