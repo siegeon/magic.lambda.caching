@@ -51,7 +51,7 @@ namespace magic.lambda.caching
             var val = input
                 .Children
                 .FirstOrDefault(x => x.Name == "value")?
-                .GetEx<object>();
+                .GetEx<string>();
 
             // Checking if value is null, at which point we simply remove cached item.
             if (val == null)

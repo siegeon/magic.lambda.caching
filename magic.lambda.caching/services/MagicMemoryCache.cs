@@ -19,7 +19,7 @@ namespace magic.lambda.caching.services
     /// </summary>
     public class MagicMemoryCache : IMagicCache
     {
-        readonly Dictionary<string, (object Value, DateTime Expires)> _items = new Dictionary<string, (object, DateTime)>();
+        readonly Dictionary<string, (string Value, DateTime Expires)> _items = new Dictionary<string, (string, DateTime)>();
         readonly IRootResolver _rootResolver;
 
         /// <summary>
@@ -32,7 +32,11 @@ namespace magic.lambda.caching.services
         }
 
         /// <inheritdoc/>
-        public Task UpsertAsync(string key, object value, DateTime utcExpiration, bool hidden = false)
+        public Task UpsertAsync(
+            string key,
+            string value,
+            DateTime utcExpiration,
+            bool hidden = false)
         {
             // Sanity checking invocation.
             if (utcExpiration < DateTime.UtcNow)
@@ -53,7 +57,9 @@ namespace magic.lambda.caching.services
         }
 
         /// <inheritdoc/>
-        public Task RemoveAsync(string key, bool hidden = false)
+        public Task RemoveAsync(
+            string key,
+            bool hidden = false)
         {
             // Synchronizing access to shared resource.
             using (var locker = new MagicLockerSlim())
@@ -67,7 +73,9 @@ namespace magic.lambda.caching.services
         }
 
         /// <inheritdoc/>
-        public Task<object> GetAsync(string key, bool hidden = false)
+        public Task<string> GetAsync(
+            string key,
+            bool hidden = false)
         {
             // Synchronizing access to shared resource.
             using (var locker = new MagicLockerSlim())
@@ -83,7 +91,9 @@ namespace magic.lambda.caching.services
         }
 
         /// <inheritdoc/>
-        public Task ClearAsync(string filter = null, bool hidden = false)
+        public Task ClearAsync(
+            string filter = null,
+            bool hidden = false)
         {
             // Prepending root value to cache filter.
             filter = GetFilter(filter, hidden);
@@ -102,7 +112,9 @@ namespace magic.lambda.caching.services
         }
 
         /// <inheritdoc/>
-        public Task<IEnumerable<KeyValuePair<string, object>>> ItemsAsync(string filter = null, bool hidden = false)
+        public Task<IEnumerable<KeyValuePair<string, string>>> ItemsAsync(
+            string filter = null,
+            bool hidden = false)
         {
             // Prepending root value to cache filter.
             filter = GetFilter(filter, hidden);
@@ -114,10 +126,10 @@ namespace magic.lambda.caching.services
 
                 // Purging all expired items.
                 PurgeExpiredItems();
-                return Task.FromResult<IEnumerable<KeyValuePair<string, object>>>(_items
+                return Task.FromResult<IEnumerable<KeyValuePair<string, string>>>(_items
                     .Where(x => x.Key.StartsWith(filter))
                     .Select(x => 
-                        new KeyValuePair<string, object>(
+                        new KeyValuePair<string, string>(
                             x.Key.Substring(_rootResolver.RootFolder.Length + 1),
                             x.Value.Value))
                     .ToList());
@@ -125,9 +137,9 @@ namespace magic.lambda.caching.services
         }
 
         /// <inheritdoc/>
-        public async Task<object> GetOrCreateAsync(
+        public async Task<string> GetOrCreateAsync(
             string key,
-            Func<Task<(object, DateTime)>> factory,
+            Func<Task<(string, DateTime)>> factory,
             bool hidden = false)
         {
             // Creating a unique key.

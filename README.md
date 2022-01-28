@@ -11,7 +11,10 @@ Cache helper slots for Magic. More specifically this project provides the follow
 * __[cache.count]__ - Returns the number of cache items in total, optionally taking a filter condition
 
 All of the above slots requires a key as its value, and/or a filter argument as the value of the identity node
-for the invocation of the slot.
+for the invocation of the slot. Notice, the cache can _only_ persist string values, implying if you want to store
+something else besides a string, you'll need to correctly convert the object before storing it into your cache,
+and correctly convert it after extracting it from your cache. If you need to preserve typing information however,
+you can store Hyperlambda strings into your cache.
 
 ## [cache.set]
 

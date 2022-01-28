@@ -57,7 +57,7 @@ namespace magic.lambda.caching
                 {
                     await signaler.SignalAsync("eval", args.Lambda.Clone());
                 });
-                return (result.Value ?? result.Clone(), args.UtcExpires);
+                return (result.GetEx<string>(), args.UtcExpires);
             });
             input.Clear();
         }

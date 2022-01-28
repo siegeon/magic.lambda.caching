@@ -72,7 +72,7 @@ namespace magic.lambda.caching
                 items
                     .Select(x => new Node(".", null, new Node[] {
                         new Node("key", x.Key),
-                        new Node("value", x.Value is Node nodeValue ? nodeValue.ToHyperlambda() : x.Value)
+                        new Node("value", x.Value)
                     })));
         }
     }
