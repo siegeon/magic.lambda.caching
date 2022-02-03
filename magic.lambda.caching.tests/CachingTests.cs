@@ -57,26 +57,6 @@ cache.list:foo
         }
 
         [Fact]
-        public void CacheSetListLimit_02()
-        {
-            var lambda = Common.Evaluate(@"
-cache.set:foo1
-   expiration:5
-   value:node:howdy world1
-cache.set:foo2
-   expiration:5
-   value:node:howdy world2
-cache.list:foo
-   limit:1
-   offset:1");
-            Assert.Single(lambda.Children.Skip(2).First().Children);
-            Assert.Equal(".", lambda.Children.Skip(2).First().Children.First().Name);
-            Assert.Equal("key", lambda.Children.Skip(2).First().Children.First().Children.First().Name);
-            Assert.Equal("foo2", lambda.Children.Skip(2).First().Children.First().Children.First().Value);
-            Assert.Equal("value", lambda.Children.Skip(2).First().Children.First().Children.Skip(1).First().Name);
-        }
-
-        [Fact]
         public void CacheSetListLimit_03()
         {
             var lambda = Common.Evaluate(@"
@@ -128,7 +108,7 @@ cache.list
 cache.set:foo
    value:x:@.val
 cache.get:foo");
-            Assert.Equal(5, lambda.Children.Skip(2).First().Value);
+            Assert.Equal("5", lambda.Children.Skip(2).First().Value);
         }
 
         [Fact]
@@ -414,50 +394,9 @@ cache.list:.xyz"));
             var lambda = Common.Evaluate(@"
 cache.try-get:foo
    .lambda
-      return
-         foo:bar
+      return:bar
 cache.get:foo");
-            Assert.Equal(typeof(Node), lambda.Children.Skip(1).First().Value.GetType());
-            Assert.Equal("", lambda.Children.Skip(1).First().GetEx<Node>().Name);
-            Assert.Null(lambda.Children.Skip(1).First().GetEx<Node>().Value);
-            Assert.Equal("foo", lambda.Children.Skip(1).First().GetEx<Node>().Children.First().Name);
-            Assert.Equal("bar", lambda.Children.Skip(1).First().GetEx<Node>().Children.First().Value);
-        }
-
-        [Fact]
-        public void CacheTryGet_02()
-        {
-            var lambda = Common.Evaluate(@"
-cache.set:foo
-   value:node:""foo:bar""
-cache.try-get:foo
-   .lambda
-      return
-         foo:bar
-cache.get:foo");
-            Assert.Equal(typeof(Node), lambda.Children.Skip(2).First().Value.GetType());
-            Assert.Equal("", lambda.Children.Skip(2).First().GetEx<Node>().Name);
-            Assert.Null(lambda.Children.Skip(2).First().GetEx<Node>().Value);
-            Assert.Equal("foo", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Name);
-            Assert.Equal("bar", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Value);
-        }
-
-        [Fact]
-        public async Task CacheTryGet_02_Async()
-        {
-            var lambda = await Common.EvaluateAsync(@"
-cache.set:foo
-   value:node:""foo:bar""
-cache.try-get:foo
-   .lambda
-      return
-         foo:bar
-cache.get:foo");
-            Assert.Equal(typeof(Node), lambda.Children.Skip(2).First().Value.GetType());
-            Assert.Equal("", lambda.Children.Skip(2).First().GetEx<Node>().Name);
-            Assert.Null(lambda.Children.Skip(2).First().GetEx<Node>().Value);
-            Assert.Equal("foo", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Name);
-            Assert.Equal("bar", lambda.Children.Skip(2).First().GetEx<Node>().Children.First().Value);
+            Assert.Equal("bar", lambda.Children.Skip(1).First().Value);
         }
 
         [Fact]
@@ -500,14 +439,9 @@ cache.get:foo");
             var lambda = await Common.EvaluateAsync(@"
 cache.try-get:foo
    .lambda
-      return
-         foo:bar
+      return:bar
 cache.get:foo");
-            Assert.Equal(typeof(Node), lambda.Children.Skip(1).First().Value.GetType());
-            Assert.Equal("", lambda.Children.Skip(1).First().GetEx<Node>().Name);
-            Assert.Null(lambda.Children.Skip(1).First().GetEx<Node>().Value);
-            Assert.Equal("foo", lambda.Children.Skip(1).First().GetEx<Node>().Children.First().Name);
-            Assert.Equal("bar", lambda.Children.Skip(1).First().GetEx<Node>().Children.First().Value);
+            Assert.Equal("bar", lambda.Children.Skip(1).First().Value);
         }
     }
 }
